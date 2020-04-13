@@ -63,7 +63,7 @@
 
 - (IBAction)saveSingle:(id)sender
 {
-    [(KOImageControl *)[[NSApp keyWindow] delegate] saveSingle];
+//    [(KOImageControl *)[[NSApp keyWindow] delegate] saveSingle];
 }
 
 - (IBAction)saveAsKOImage:(id)sender   // 3D

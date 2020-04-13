@@ -217,159 +217,6 @@ lp1(float a)
 }
 */
 
-/*
-KO_IMAGE *
-cpx2realX(KO_IMAGE *raw, int mode, float f_max)
-{
-    KO_IMAGE    *col = nil;
-    short       *r = 0, *g = 0, *b = 0;
-    float       *p, *q, *p3;
-	short       *sp;
-    int         i;
-    float       mg, th1;
-//    float   th2, th3;
-    int         disp_mode = KO_REAL;;
-
-// special cases
-	if (raw->type == KO_REAL) {
-		disp_mode = 5;
-	}
-	if (raw->type == KO_INTEGER) {
-		disp_mode = 6;
-	}
-	if (raw->type == KO_COLOR) {
-		disp_mode = 7;
-	}
-
-	switch (disp_mode) {
-	case 0 :	// mag
-	case 1 :	// real
-	case 2 :	// imag
-	case 3 :	// imag
-	default :
-		col = new_image(raw->xdim, raw->ydim, KO_INTEGER);
-		r = (short *)col->real[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-		break;
-	case 4 :	// phase color
-		col = new_image(raw->xdim, raw->ydim, KO_COLOR);
-		r = (short *)col->real[0];
-		g = (short *)col->imag[0];
-		b = (short *)col->p3[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-		break;
-	case 5 :	//real -> real
-		col = new_image(raw->xdim, raw->ydim, KO_INTEGER);
-		r = (short *)col->real[0];
-		p = (float *)raw->real[0];
-		break;
-	case 6 :	// integer -> real
-		col = new_image(raw->xdim, raw->ydim, KO_INTEGER);
-		r = (short *)col->real[0];
-		sp = (short *)raw->real[0];
-		break;
-	case 7 :	// RGB color
-		col = new_image(raw->xdim, raw->ydim, KO_COLOR);
-		r = (short *)col->real[0];
-		g = (short *)col->imag[0];
-		b = (short *)col->p3[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-		p3 = (float *)raw->p3[0];
-		break;
-	}
-
-	switch (disp_mode) {
-	case 0:	// Mag
-	default:
-		for (i = 0; i < raw->size; i++) {
-			mg = p[i]*p[i] + q[i]*q[i];
-			mg = sqrt(mg) / f_max;
-			r[i] = mg * max_val;    // max_val: constant
-		}
-		break;
-	case 1:	// Re
-		for (i = 0; i < raw->size; i++) {
-			mg = p[i] / f_max;
-			r[i] = mg * max_val;
-		}
-		break;
-	case 5:	// real to real
-		for (i = 0; i < raw->size; i++) {
-			mg = p[i] / f_max;
-			r[i] = mg * max_val;
-		}
-		break;
-	case 6:	// int to real
-		for (i = 0; i < raw->size; i++) {
-			mg = sp[i] / f_max;
-			r[i] = mg * max_val;
-		}
-		break;
-	case 2:	// Im
-		for (i = 0; i < raw->size; i++) {
-			mg = q[i] / f_max;
-			r[i] = mg * max_val;
-		}
-		break;
-	case 3:	// Phs
-		for (i = 0; i < raw->size; i++) {
-			th1 = atan2(q[i], p[i]);
-			r[i] = th1 * max_val / M_PI;
-		}
-		break;
-	case 4:	// Phase color, mg -> brt, phs -> hue
-		for (i = 0; i < raw->size; i++) {
-			mg = p[i]*p[i] + q[i]*q[i];
-			mg = sqrt(mg) / f_max;
-			th1 = atan2(q[i], p[i]);
-            // === new version (3-27-2013) ==
-            if (th1 < - 2*M_PI/3) {
-                r[i] = 0;
-                g[i] = max_val * mg * 3 * (-2*M_PI/3 - th1) / M_PI;
-                b[i] = max_val * mg;
-            } else
-            if (th1 < - M_PI / 3.0) {
-                r[i] = max_val * mg * 3 * (th1 + 2*M_PI/3) / M_PI;
-                g[i] = 0;
-                b[i] = max_val * mg;
-            } else
-            if (th1 < 0) {
-                r[i] = max_val * mg;
-                g[i] = 0;
-                b[i] = max_val * mg * 3 * (-th1) / M_PI;
-            } else
-            if (th1 < M_PI/3) {
-                r[i] = max_val * mg;
-                g[i] = max_val * mg * 3 * (th1) / M_PI;
-                b[i] = 0;
-            } else
-            if (th1 < 2.0 * M_PI / 3.0) {
-                r[i] = max_val * mg * 3 * (2*M_PI/3 - th1) / M_PI;
-                g[i] = max_val * mg;
-                b[i] = 0;
-            } else {
-                r[i] = 0;
-                g[i] = max_val * mg;
-                b[i] = max_val * mg * 3 * (th1 - 2*M_PI/3) / M_PI;
-            }
-		}
-		break;
-	case 7:	// RGB Color
-		for (i = 0; i < raw->size; i++) {
-			r[i] = p[i] * max_val;
-			g[i] = q[i] * max_val;
-			b[i] = p3[i] * max_val;
-		}
-		break;
-	}
-    free_image(raw);
-    return col;
-}
-*/
-
 @implementation KOImageControl
 
 - (id)initFromNib
@@ -480,7 +327,7 @@ cpx2realX(KO_IMAGE *raw, int mode, float f_max)
     // ## do nothing
 	}
     // scale & complex
-    _cpx = ([img type] == RECIMAGE_COMPLEX);
+//    _cpx = ([img type] == RECIMAGE_COMPLEX);
     _dispScale = 4000.0 / [img maxVal];
     
     [self setImage:img];
@@ -503,6 +350,77 @@ cpx2realX(KO_IMAGE *raw, int mode, float f_max)
 
 - (void)setDispBuf     // convert img to scaled color image
 {
+    RecImage    *tmp;
+    float       *p, *q;                 // input
+    float       *r, *g, *b;         // output
+    float       max_val;
+    int         full_int = 4000;
+    int         i, n;
+
+    _dispBuf = [RecImage imageOfType:RECIMAGE_COLOR withImage:_img];
+    r = [_dispBuf real];
+    g = r + [_dispBuf dataLength];
+    b = g + [_dispBuf dataLength];
+    
+    max_val = [_img maxVal];
+
+//    int         _cpxMode;    // 0:Mag, 1:Re, 2:Im, 3:Phs, 4:color
+    switch ([_img type]) {
+// real
+    case RECIMAGE_REAL :
+        p = [_img data];
+        n = [_img dataLength];
+        for (i = 0; i < n; i++) {
+            r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+        }
+        break;
+// complex -> real
+    case RECIMAGE_COMPLEX :
+        tmp = [_img copy];
+        switch (_cpxMode) {
+        default :
+        case 0 :     // mag
+            [tmp magnitude];
+            p = [tmp data];
+            n = [tmp dataLength];
+            for (i = 0; i < n; i++) {
+                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+            }
+            break;
+        case 1 :     // real
+            [tmp takeRealPart];
+            p = [tmp data];
+            n = [tmp dataLength];
+            for (i = 0; i < n; i++) {
+                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+            }
+            break;
+        case 2 :     // imag
+            [tmp takeImagPart];
+            p = [tmp data];
+            n = [tmp dataLength];
+            for (i = 0; i < n; i++) {
+                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+            }
+            break;
+        case 3 :     // phase
+            [tmp phase];
+            p = [tmp data];
+            n = [tmp dataLength];
+            for (i = 0; i < n; i++) {
+                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+            }
+            break;
+        case 4 :     // color
+            break;
+        }
+        break;
+        // color
+    case RECIMAGE_COLOR :
+        break;
+    }
+
+
 }
 
 /*

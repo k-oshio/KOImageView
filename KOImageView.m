@@ -31,6 +31,7 @@
 	_lineYOn = NO;
 	_aspect = -1;
 	_bitmap = nil;		// main image view
+    _over = nil;
 	_xdim = 0;			// image size
 	_ydim = 0;			// image size
 	_zoomFactor = 1.0;

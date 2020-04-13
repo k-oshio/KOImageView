@@ -62,7 +62,7 @@
 	float       _zoomFactor;
 
 // complex display mode
-    BOOL        _cpx;
+//    BOOL        _cpx;
 	int         _cpxMode;	// 0:Mag, 1:Re, 2:Im, 3:Phs, 4:color
 	BOOL		_logP1;
 
