@@ -17,63 +17,6 @@
 
 int max_val = 4000; // constant
 
-/*
-float
-calc_max_val(KO_IMAGE **ff, int n)
-{
-    int     i, j;
-    float   *p, *q, *p3;
-    float   mx;
-
-    mx = 0;
-    for (i = 0; i < n; i++) {
-		switch (ff[i]->type) {
-        case KO_COMPLEX :
- //           mx = mx * mx;
-            p = (float *)ff[i]->real[0];
-            q = (float *)ff[i]->imag[0];
-            for (j = 0; j < ff[i]->size; j++) {
-				if (mx < fabs(p[j])) mx = fabs(p[j]);
-				if (mx < fabs(q[j])) mx = fabs(q[j]);
-            }
-//            mx = sqrt(mx);
-            break;
-        case KO_REAL : 
-            p = (float *)ff[i]->real[0];
-            for (j = 0; j < ff[i]->size; j++) {
-                if (fabs(p[j]) > mx) mx = fabs(p[j]);
-            }
-            break;
-        case KO_COLOR :
-            p = (float *)ff[i]->real[0];
-            q = (float *)ff[i]->imag[0];
-            p3 = (float *)ff[i]->p3[0];
-            for (j = 0; j < ff[i]->size; j++) {
-				if (mx < fabs(p[j])) mx = fabs(p[j]);
-				if (mx < fabs(q[j])) mx = fabs(q[j]);
-                if (mx < fabs(p3[i])) mx = fabs(p3[j]);
-            }
-            break;
-        default :
-            mx = max_val;
-            break;
-        }
-    }
-
-// if within this range, don't adjust
-    if (mx > 400 && mx < 8000) {
-        mx = max_val;
-    }
-	if (isnan(mx)) {
-		mx = max_val;
-	}
-	if (isinf(mx)) {
-		mx = max_val;
-	}
-    return mx;
-}
-*/
-
 // returns new color image. raw is freed.
 // cpxMode   : 0:mag, 1:real, 2:imag, 3:phase, 4:phase color
 // imageType : 0:integer image, 1:real(float) image, 2:complex iamge, 3:color(vector) image
@@ -258,7 +201,6 @@ cpx2real(KO_IMAGE *raw, int cpxMode, float f_max)
 
     return col;
 }
-*/
 float
 lp1(float a)
 {
@@ -273,6 +215,7 @@ lp1(float a)
 	}
 	return b;
 }
+*/
 
 /*
 KO_IMAGE *
@@ -444,8 +387,7 @@ cpx2realX(KO_IMAGE *raw, int mode, float f_max)
 	self = [super init];
     _files = nil;
 //	_f = origArray = alteredArray = NULL;
-	_f = nil;
-//	_nImages = 0;
+	_img = _dispBuf = nil;
     _timer = nil;
     _cineMode = 0;	// space
     _cineDelta = 1;
@@ -455,19 +397,6 @@ cpx2realX(KO_IMAGE *raw, int mode, float f_max)
 
 	return self;
 }
-
-//- (void)dealloc
-//{
-//	int	i;
-
-//    NSLog(@"KOImageControl:dealloc");
-//    if (_f) {
-//        for (i = 0; i < _nImages; i++) {
-//            free_image(_f[i]);
-//        }
- //       free(_f);
- //   }
-//}
 
 - (void)awakeFromNib
 {
@@ -504,7 +433,6 @@ cpx2realX(KO_IMAGE *raw, int mode, float f_max)
 	NSOpenPanel	*openPanel = [NSOpenPanel openPanel];
 
 	[openPanel setAllowsMultipleSelection:YES];
-//	curDir = [[(KOImageControl *)[[NSApp keyWindow] delegate] currentDirectory] copy];
     sts = (int)[openPanel runModal];
     if (sts != NSModalResponseOK) return;
     _files = [openPanel URLs];
@@ -520,265 +448,63 @@ cpx2realX(KO_IMAGE *raw, int mode, float f_max)
     [_window makeKeyAndOrderFront:self];
 }
 
-// not done yet ######
-- (void)openRawXDim:(int)xDim yDim:(int)yDim zDim:(int)zDim
-		size:(int)size order:(int)order type:(int)type
-{
-	int			sts;
-	int			len;
-	NSString	*path;
-	NSOpenPanel	*openPanel = [NSOpenPanel openPanel];
-
-	[openPanel setAllowsMultipleSelection:NO];
-    sts = [openPanel runModal];
-    if (sts != NSModalResponseOK) return;
-    _files = [openPanel URLs];
-printf("openRaw::: not done yet ###\n", xDim, yDim, zDim);
-printf("x/y/z = %d/%d/%d\n", xDim, yDim, zDim);
-return;
-
-// load raw image ###
-//	[self loadImages];
-
-// initially invisible
-	path = [[[openPanel URLs] objectAtIndex:0] path];
-	len = [path length];
-	len -= 40;
-	if (len < 0) len = 0;
-	path = [path substringFromIndex:len];
-	[_window setTitle:path];
-    [_window makeKeyAndOrderFront:self];
-}
-
-// ### RecImage methods
-// ### remove KO_IMAGE
-/*
-- (KO_IMAGE **)koImageWithRecImage:(RecImage *)rec nImg:(int *)n
-{
-	KO_IMAGE		**ko;
-	int				xdim, ydim, zdim;
-	int				i, ix, k, dataLen;	// i:xy index:[0..dataLen-1], k:z index
-	int				type, koType;
-	float			*p, *data;
-
-	type = [rec type];
-	data = [rec data];
-	switch (type) {
-	case RECIMAGE_REAL :
-	default :
-		koType = KO_REAL;
-		break;
-	case RECIMAGE_COMPLEX :
-	case RECIMAGE_MAP :
-		koType = KO_COMPLEX;
-		break;
-	}
-	xdim = [rec xDim];
-	ydim = [rec yDim];
-//	zdim = [rec outerLoopDim];
-	zdim = [rec nImages];
-	ko = new_image_array(xdim, ydim, koType, zdim);
-	// copy data
-	dataLen = xdim * ydim;
-	ix = 0;
-	for (k = 0; k < zdim; k++) {
-		p = ko[k]->real[0];
-		for (i = 0; i < dataLen; i++) {
-			p[i] = data[ix++];
-		}
-	}
-	if (koType == KO_COMPLEX) {
-		for (k = 0; k < zdim; k++) {
-			p = ko[k]->imag[0];
-			for (i = 0; i < dataLen; i++) {
-				p[i] = data[ix++];
-			}
-		}
-	}
-	*n = zdim;
-	return ko;
-}
-*/
-/*
-- (RecImage *)recImageWithKOImage:(KO_IMAGE **)f nImg:(int)n
-{
-	RecImage	*img;
-	int			type;
-	int			koType;
-	float		*p, *data;
-	int			i, k, ix, dataLen;
-
-	if (f == NULL) return NULL;
-	koType = f[0]->type;
-
-	switch (koType) {
-	case KO_REAL :
-	default :
-		type = RECIMAGE_REAL;
-		break;
-	case KO_COMPLEX :
-		type = RECIMAGE_COMPLEX;
-		break;
-	}
-	img = [RecImage imageOfType:type xDim:f[0]->xdim yDim:f[0]->ydim zDim:n];
-	data = [img data];
-	dataLen = [img xDim] * [img yDim];
-
-	ix = 0;
-	for (k = 0; k < n; k++) {
-		p = f[k]->real[0];
-		for (i = 0; i < dataLen; i++) {
-			data[ix++] = p[i];
-		}
-	}
-	if (koType == KO_COMPLEX) {
-		for (k = 0; k < n; k++) {
-			p = f[k]->imag[0];
-			for (i = 0; i < dataLen; i++) {
-				data[ix++] = p[i];
-			}
-		}
-	}
-	
-	return img;
-}
-*/
-
-- (void)setImage:(RecImage *)img
-{
-//	KO_IMAGE	**f;
-//	int			nImg;
-
-//	nImg = [img zDim];
-//	f = [self koImageWithRecImage:img nImg:&nImg];
-//	[self setImages:f nImages:nImg];
-	_f = img;
-}
-
-//- (RecImage *)recImages
-//{
-//	RecImage	*img;
-//	img = [self recImageWithKOImage:_f nImg:_nImages];
-//	return img;
-//}
-
 - (RecImage *)selectedImage
 {
-	RecImage	*img;
-//	KO_IMAGE	**f;
 	int			ix;
-
-//	f = [self images];
 	ix = [self imageIndex];
-//	img = [self recImageWithKOImage:f + ix nImg:1];
-
-	return [img sliceAtIndex:ix];
+	return [_img sliceAtIndex:ix];  // or dispBuf ?
 }
-// ### RecImage methods
 
 - (void)loadImages
 {
 //    const char *path;
-	int			i, n;
-//	KO_IMAGE	**f = NULL;
-    float       f_max_val = 0;
-//    float       tmp_thres = 1.0e30;
-//    float       tmp_inv = 1.0e-30;
-	RecImage	*img;	// testing ... ###
-//    int			xdim, ydim;
+ 	RecImage	*img;	// testing ... ###
 
 // load images -> f
-	n = (int)[_files count];
 	if (_indicator) {
 		[_indicator setPercentage:0];
 		[_indicator setTitle:@"Loading..."];
 		[_indicator show:self];
 	}
 
-//
-//	### rewrite below part ...
-//		supported formats are:
-//			image_block, single KOImage, RecImage, DICOM
-// 1. implement imageWithOldImage: in RecKit
-// 2. rewrite KOImageControl using RecImage (remove KO_IMAGE)
-//
-
     // RecImage
 	if ((img = [RecImage imageFromFile:[[_files objectAtIndex:0] path] relativePath:NO])) {
-		// convert to KOImage
-//		f = [self koImageWithRecImage:img nImg:&n];
-//        f_max_val = calc_max_val(f, n);
-		f_max_val = [img maxVal];
-		n = [img zDim];
-        for (i = 0; i < n; i++) {
-		//	_cpx = (f[i]->type == KO_COMPLEX);
-			_cpx = [img type];
-		//	f[i] = [self cpx2real:f[i] mode:_cpxMode max:f_max_val];
-        }
+        // recimage ... -> make 3D (removde upper loops)
 	} else
-	// KO_IMAGE (saved by RecKit)
+	// RecKit KOImage
 	if ((img = [RecImage imageWithKOImage:[[_files objectAtIndex:0] path]])) {
-		// convert to KOImage
-	//	f = [self koImageWithRecImage:img nImg:&n];
-    //    f_max_val = calc_max_val(f, n);
-		n = [img zDim];
-		f_max_val = [img maxVal];
-        for (i = 0; i < n; i++) {
-		//	_cpx = (f[i]->type == KO_COMPLEX);
-		//	f[i] = [self cpx2real:f[i] mode:_cpxMode max:f_max_val];
-        }
-	} else
+    // ### do nothing
+    } else
 	// DICOM
 	if ((img = [RecImage imageWithDicomFiles:_files])) {
-		// convert to KOImage
-	//	f = [self koImageWithRecImage:img nImg:&n];
-    //    f_max_val = calc_max_val(f, n);
-    //    for (i = 0; i < n; i++) {
-	//		_cpx = (f[i]->type == KO_COMPLEX);
-	//		f[i] = [self cpx2real:f[i] mode:_cpxMode max:f_max_val];
-    //    }
+    // ## do nothing
 	}
-/* implement below part in RecImage
-	else
-	// block (saveAsKOImage:)
-    if ((f = get_image_block((char *)[[[_files objectAtIndex:0] path] UTF8String], &i)) != NULL) { 
-        n = i;
-        f_max_val = calc_max_val(f, n);
-        if ((f_max_val > tmp_thres) || (f_max_val < -tmp_thres)) {
-            for (i = 0; i < n; i++) {
-                mul_image(f[i], tmp_inv);
-            }
-            f_max_val *= tmp_inv;
-        }
-        for (i = 0; i < n; i++) {
-			_cpx = (f[i]->type == KO_COMPLEX);
-		//	f[i] = cpx2real(f[i], _cpxMode, f_max_val);
-			f[i] = [self cpx2real:f[i] mode:_cpxMode max:f_max_val];
-        }
-    } else {
-		// multiple KO_IMAGE
-        // if get_image fails, empty image (null pointer) is inserted
-        f = (KO_IMAGE **)malloc(sizeof(KO_IMAGE *) * n);
-		_cpx = YES;
-    //    f_max_val = calc_max_val(f, n);
-        for (i = 0; i < n; i++) {
-            path = [[[_files objectAtIndex:i] path] UTF8String];
-            // ========= get image =======
-            f[i] = get_any_image((char *)path);
-            if (_indicator) [_indicator setPercentage: i * 100.0 / n];
-			f_max_val = calc_max_val(f+i, 1);
-		//	f[i] = cpx2real(f[i], _cpxMode, f_max_val);
-			f[i] = [self cpx2real:f[i] mode:_cpxMode max:f_max_val];
-        }
-	}
-	if (_indicator) [_indicator hide:self];
+    // scale & complex
+    _cpx = ([img type] == RECIMAGE_COMPLEX);
+    _dispScale = 4000.0 / [img maxVal];
+    
+    [self setImage:img];
+    [self setDispBuf];
+    
+    // set slider etc (old setImages:)
+    // update n-slider (before displayImage)
+    [_numSlider setMin:0 andMax:[img zDim]-1];
+    [_numSlider setValue:0];
 
-// if not successfull, do nothing and keep old images
-	if (n <= 0 || f == NULL || f[0] == NULL) return;
-
-	[self setImages:f nImages:n];
+    // view
+    [_view initImage:[img xDim]:[img yDim]];
+    [self updateWinLev];
+    [self displayImage];
+    if (_scaleView) {
+        [_scaleView initScale:64 withView:_view];
+        [_scaleView display];
+    }
 }
-*/
+
+- (void)setDispBuf     // convert img to scaled color image
+{
+}
+
 /*
 - (void)setImages:(KO_IMAGE **)f nImages:(int)n
 {
@@ -869,6 +595,8 @@ typedef struct {
 // ## complex case doesn't work (converted to real when loaded)
 - (void)saveAsKOImage
 {
+/* do this later ###
+
 	NSSavePanel *savePanel = [NSSavePanel savePanel];
 	NSString    *path;
     FILE        *fp;
@@ -932,33 +660,14 @@ typedef struct {
         fclose(fp);
         free(buf);
     }
+    */
 }
 
-/* Save As TIFF (TIFF works after 10.1)
-- (void)saveImageAsTIFF
-{
-	NSSavePanel	*savePanel = [NSSavePanel savePanel];
-	NSData		*data;
-	NSString	*path, *path2;
-	int			sts;
-	
-	if (!savePanel) savePanel = [NSSavePanel savePanel];
-//	sts = [savePanel runModalForDirectory:NSHomeDirectory() file:nil];
-    sts = [savePanel runModal];
-	if (sts != NSOKButton) {
-		return;
-	} else {
-		path = [[savePanel URL] path];
-		path2 = [NSString stringWithFormat:@"%@.tiff", path];
-		data = [[_view imageRep] TIFFRepresentation];
-		[data writeToFile:path2 atomically:YES];
-	}   
-}
-*/
-
-// Save All Images as PDF
+// Save All Images as PDF (or tiff)
 - (void)saveAllAsPDF
 {
+/* do this later ###
+
 	NSSavePanel	*savePanel = [NSSavePanel savePanel];
 	NSData		*data;
 	NSString	*path, *path2;
@@ -981,12 +690,15 @@ typedef struct {
 			[data writeToFile:path2 atomically:YES];
 		}
 		[self displayImage];
-	}   
+	}
+ */   
 }
 
 // display with current win/lev and image number
 - (void)displayImage
 {
+    [_view displayImageData:_dispBuf];
+/*
 	int		ix = [_numSlider intValue];
 	if (_f != NULL && _f[ix] != NULL) {
         switch (_f[ix]->type) {
@@ -1005,11 +717,12 @@ typedef struct {
 	} else {
 		[_view displayImageData:NULL];
 	}
+*/
 }
 
 - (void)displayImage:(int)ix
 {
-	if (ix >= 0 && ix < _nImages) {
+	if (ix >= 0 && ix < [self nImages]) {
 		[_numSlider setValue:ix];
 		[self displayImage];
 	}
@@ -1069,20 +782,17 @@ typedef struct {
 	[self displayImage];
 }
 */
+
 - (IBAction)autoWinLev:(id)sender;
 {
-//	int		i;
-	int		max_pix, min_pix;
-	int		win, lev;
-	int		ix = [_numSlider intValue];
-//	short	*sp;
-	RecImage	*cur;
-//	int		imgSize = [_f xDim] * [_f yDim];
-//	float	*p = [_f data] + ix * imgSize;
-//	short	*p = (short *)_f[ix]->real[0];
+//	int		    i;
+	int		    max_pix, min_pix;
+	int		    win, lev;
+	int		    ix = [_numSlider intValue];
+	RecImage    *cur;
 
-	if (_f == nil) return;
-	cur = [_f sliceAtIndex:ix];
+	if (_dispBuf == nil) return;
+	cur = [_dispBuf sliceAtIndex:ix];
 	
 	min_pix = [cur minVal];
 	max_pix = [cur maxVal];
@@ -1181,16 +891,20 @@ typedef struct {
 
 - (void)reportCursorAt:(NSPoint)pt from:(id)sender
 {
-	int		ix = [_numSlider intValue];
-    int     x = pt.x;
-    int     y = pt.y;
-	int		val;
+    RecImage    *cur = [self selectedImage];
+    float       *data;  // red
+    int         x = pt.x;
+    int         y = pt.y;
+    int         xDim = [_dispBuf xDim];
+    int         yDim = [_dispBuf yDim];
+	int		    val;
 
-	if (_f == NULL || _f[ix] == NULL) return;
+	if (_dispBuf == nil) return;
+    data = [cur data];
 
-    if (x >= 0 && x < _f[ix]->xdim &&
-        y >= 0 && y < _f[ix]->ydim) {
-        val = ((float *)_f[ix]->real[y])[x];
+    if (x >= 0 && x < xDim &&
+        y >= 0 && y < yDim) {
+        val = data[y * xDim + x];
 
         // report cursor pos & value
         [_xField setIntValue:x];
@@ -1266,12 +980,13 @@ typedef struct {
 - (void)cineStep
 {
     int			img = [_numSlider intValue];
+    int         nImages = [self nImages];
 
-    if (_nImages < 2) return;
+    if (nImages < 2) return;
     if (_cineMode == 0) {	// space
         img += _cineDelta;
-        if (img >= _nImages) {
-            img = _nImages-1;
+        if (img >= nImages) {
+            img = nImages-1;
             _cineDelta = -1;
         }
         if (img < 0) {
@@ -1282,7 +997,7 @@ typedef struct {
         [self displayImage];
     } else {
         img += 1;
-        if (img >= _nImages) img = 0;
+        if (img >= nImages) img = 0;
         [_numSlider setValue:img];
         [self displayImage];
     }
@@ -1345,19 +1060,19 @@ typedef struct {
 	return _files;
 }
 
-//- (KO_IMAGE **)images
-//{
-//	return _f;
-//}
-
-//- (int)nImages
-//{
-//	return _nImages;
-//}
+- (int)nImages
+{
+	return [_img zDim];
+}
 
 - (RecImage *)image
 {
-	return _f;
+	return _img;
+}
+
+- (void)setImage:(RecImage *)img
+{
+    _img = img;
 }
 
 - (int)imageIndex
@@ -1624,32 +1339,6 @@ typedef struct {
     free_image(raw);
 
     return col;
-}
-*/
-
-/*
-// reordering
-- (void)reorderWithSize:(int)size
-{
-	int			i, ix, nPhs, phs, slc;
-
-	if ((_nImages % size) != 0) return;
-
-	// set reordered array (already allocated)
-	nPhs = _nImages / size;
-	for (i = 0; i < _nImages; i++) {
-		phs = i / size;
-		slc = i % size;
-		ix = slc * nPhs + phs;
-		
-		alteredArray[ix] = origArray[i];
-	}
-	_f = alteredArray;
-}
-
-- (void)revertOrder
-{
-	_f = origArray;
 }
 */
 

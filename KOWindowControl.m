@@ -48,6 +48,7 @@
     [_imageControlArray addObject:control];
 }
 
+/*
 - (IBAction)openRaw:(id)sender
 {
     KOImageControl  *control;
@@ -58,6 +59,7 @@
 		size:[rawSize tag] order:[rawOrder tag] type:[rawType tag]];
     [_imageControlArray addObject:control];
 }
+*/
 
 - (IBAction)saveSingle:(id)sender
 {

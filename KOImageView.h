@@ -15,8 +15,8 @@
 #define COLOR_MODE_COLOR2	4   // heat
 #define COLOR_MODE_COLOR3	5   // red / blue
 
-//#define LUTSIZE 8192	/* 12bit data + sign */
-//#define LUTSIZE 16384 /* 13bit data + sign */
+@class RecImage;
+
 #define LUTSIZE 32768	/* 14bit data + sign */
 
 @interface KOImageView:NSView
@@ -28,7 +28,7 @@
     int					_cursorMode;	// win / pos / image
 // image
 	//int					_imageMode;		// 0: 12bit, 1: 36bit color
-	NSBitmapImageRep	*_image;		// place to store "image" (24bit)
+	NSBitmapImageRep	*_bitmap;		// place to store "image" (24bit)
 	NSBitmapImageRep	*_over;			// overlay (24bit)
 	BOOL				_overlayOn;
 	int					_xdim;			// image size
@@ -61,9 +61,10 @@
 - (void)setFlipInView:(int)flip;
 - (void)setRotateInView:(int)angle;
 - (void)setInterpolation:(BOOL)flag;
-- (void)displayImageData:(float *)data;
+- (void)displayImageData:(RecImage *)img;
+//- (void)displayImageData:(float *)data;
 //- (void)displayColorImage:(short *)r :(short *)g :(short *)b;
-- (void)displayColorImage:(float *)r :(float *)g :(float *)b;
+//- (void)displayColorImage:(float *)r :(float *)g :(float *)b;
 - (void)setColorMode:(int)mode;
 - (void)setCursorMode:(int)mode;
 - (void)setWin:(int)win andLev:(int)lev;

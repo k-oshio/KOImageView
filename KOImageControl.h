@@ -1,11 +1,11 @@
 /*
 	KOImageControl.h
 	image disp control object
-	
+
 	K. Oshio
 	3-6-1996	Initial (Disp/DidpWin -> ImageControl)
-	
- */
+
+*/
 
 #import <Cocoa/Cocoa.h>
 
@@ -45,17 +45,19 @@
 	NSArray     *_files;
 //	KO_IMAGE    **_f;       // ## KO_IMAGE -> make these RecImage
 //	KO_IMAGE	**origArray;
-//	KO_IMAGE	**alteredArray;	
+//	KO_IMAGE	**alteredArray;
 //	int         _nImages;
 //	BOOL        _imageAllocated;
-	RecImage	*_f;
+	RecImage	*_img;      // image in file is kept unchanged (cpx)
+    RecImage    *_dispBuf;  // scaled color image for display
+    float       _dispScale;
 
 // cine loop
     NSTimer     *_timer;
     float       _frameRate;
     int         _cineMode;
     int         _cineDelta;
-    
+
 // zoom / pan
 	float       _zoomFactor;
 
@@ -74,10 +76,8 @@
 - (void)open;
 //- (void)saveImageAsTIFF;
 - (void)saveAllAsPDF;
-- (void)saveSingle;
+//- (void)saveSingle;
 - (void)saveAsKOImage;   // 3D
-- (void)openRawXDim:(int)xDim yDim:(int)yDim zDim:(int)zDim
-	size:(int)size order:(int)order type:(int)type;
 - (IBAction)forward:(id)sender;
 - (IBAction)backward:(id)sender;
 - (IBAction)sliderMoved:(id)sender;
@@ -99,7 +99,7 @@
 //- (void)openFiles:(NSArray *)files;
 - (void)loadImages;
 //- (void)setImages:(KO_IMAGE **)f nImages:(int)n;    // ## KO_IMAGE
-- (void)setImage:(RecImage *)img;
+//- (void)setImage:(RecImage *)img;
 - (void)changeWin:(int)w lev:(int)l from:sender;
 - (void)changeImage:(int)y from:(id)sender;
 - (void)moveByX:(int)x andY:(int)y from:(id)sender;	// called by upper control (not by view)
@@ -108,9 +108,6 @@
 - (void)updateWinLev;
 - (void)displayImage;
 - (void)displayImage:(int)ix;
-//- (KO_IMAGE *)cpx2real:(KO_IMAGE *)raw mode:(int)cpxMode max:(float)f_max;
-//- (void)reorderWithSize:(int)size;
-//- (void)revertOrder;
 
 - (void)startTimer;
 - (void)stopTimer;
@@ -120,7 +117,9 @@
 - (NSArray *)files;
 //- (KO_IMAGE **)images;  // ## KO_IMAGE
 - (RecImage *)image;
-//- (int)nImages;
+- (void)setImage:(RecImage *)img;
+- (int)nImages;
+- (void)setDispBuf;     // convert img to scaled real image
 - (int)imageIndex;	// probably not necessary
 - (RecImage *)selectedImage;
 - (KOImageView *)view;

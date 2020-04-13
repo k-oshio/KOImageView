@@ -30,7 +30,7 @@
 	_lineXOn = NO;
 	_lineYOn = NO;
 	_aspect = -1;
-	_image = nil;		// main image view
+	_bitmap = nil;		// main image view
 	_xdim = 0;			// image size
 	_ydim = 0;			// image size
 	_zoomFactor = 1.0;
@@ -50,15 +50,14 @@
 {
 	unsigned char *conversion_tmp[5] = {NULL};
 	
-//	if (_image) [_image autorelease];
-	_image = [NSBitmapImageRep alloc];
+	_bitmap = [NSBitmapImageRep alloc];
 	_xdim = xDim;
 	_ydim = yDim;
 //	_zoomFactor = 1.0;
     [self setImageRect];
 	[self setLUT];
 	_flipped = NO;
-	_image = [_image initWithBitmapDataPlanes:&conversion_tmp[0]
+	_bitmap = [_bitmap initWithBitmapDataPlanes:&conversion_tmp[0]
                           pixelsWide:_xdim
                           pixelsHigh:_ydim
                        bitsPerSample:8
@@ -137,20 +136,20 @@
 
 // display signed 12bit image using current win/lev/color
 // xdim/ydim : dim of image (not view)
-// *p is read-only
-- (void)displayImageData:(float *)p
+// img is already color
+- (void)displayImageDataX:(RecImage *)img
 {
 	int				i, j;
 	int				intensity;	// 8bit
-	unsigned char	*data = [_image bitmapData];
+	unsigned char	*data = [_bitmap bitmapData];
 	unsigned char	*ovr_data = [_over bitmapData];
 
-	if (p == NULL) {	// no image
+	if (img == nil) {	// no image
 		return;
 	}
 // 12bit -> 8bit -> color
 	for (i = j = 0; i < _xdim * _ydim; i++, j+=3) {
-		intensity = p[i] + LUTSIZE/2;
+//		intensity = p[i] + LUTSIZE/2;
 		if (intensity < 0) intensity = 0;
 		if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
 		data[j]		= _r[winLevTab[intensity]];
@@ -172,44 +171,32 @@
 }
 
 //- (void)displayColorImage:(short *)r :(short *)g :(short *)b
-- (void)displayColorImage:(float *)r :(float *)g :(float *)b
+- (void)displayImageData:(RecImage *)img
 {
 	int				i, j;
+    int             n;
+    float           *p;
 	int				intensity;	// 8bit
-	unsigned char	*data = [_image bitmapData];
-	unsigned char	*ovr_data;
+	unsigned char	*data = [_bitmap bitmapData];
+    unsigned char    *ovr_data = [_over bitmapData];
 
-	if (r == NULL) {	// no image
+	if (img == nil) {	// no image
 		return;
 	}
 
+// imaga data
+    p = [img data];
+    n = [img dataLength] * [img pixSize];
+
 // 12bit -> 8bit -> color
-	for (i = j = 0; i < _xdim * _ydim; i++) {
-		intensity = r[i] + LUTSIZE/2;
+	for (i = j = 0; i < n; i++) {
+		intensity = p[i] + LUTSIZE/2;
 		if (intensity < 0) intensity = 0;
 		if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-		data[j++] = winLevTab[intensity];
-
-		intensity = g[i] + LUTSIZE/2;
-		if (intensity < 0) intensity = 0;
-		if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-		data[j++] = winLevTab[intensity];
-
-		intensity = b[i] + LUTSIZE/2;
-		if (intensity < 0) intensity = 0;
-		if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-		data[j++] = winLevTab[intensity];
-	}
-// add overlay ###
-	if (_overlayOn) {
-		ovr_data = [_over bitmapData];
-		for (i = j = 0; i < _xdim * _ydim; i++, j+=3) {
-			if (ovr_data[j] > 0 || ovr_data[j+1] > 0 || ovr_data[j+2] > 0) {
-				data[j]		= ovr_data[j];
-				data[j+1]	= ovr_data[j+1];
-				data[j+2]	= ovr_data[j+2];
-			}
-		}
+		data[i] = winLevTab[intensity];
+        if (ovr_data[i] > 0) {
+            data[i] += ovr_data[i];
+        }
 	}
 	[self display];
 }
@@ -227,12 +214,12 @@
 	[[NSGraphicsContext currentContext]
 		setImageInterpolation:interpMode];
 	bb = [self bounds];
-	if (_image) {
+	if (_bitmap) {
         if (_aspect > 0) {
             [[NSColor darkGrayColor] set];
             NSRectFill(bb);
         }
-		[_image drawInRect:_imageRect];
+		[_bitmap drawInRect:_imageRect];
 	} else {
 		[[NSColor darkGrayColor] set];
 		NSRectFill(bb);
@@ -416,7 +403,7 @@
 
 - (NSBitmapImageRep *)imageRep
 {
-	return _image;
+	return _bitmap;
 }
 
 - (NSBitmapImageRep *)overlay
@@ -709,7 +696,7 @@
 	// PDF (Cocoa)
 	[self writePDFInsideRect:[self bounds] toPasteboard:pb];
 	// TIFF (Classic/Carbon)
-	[pb setData:[_image TIFFRepresentation] forType:NSTIFFPboardType];
+	[pb setData:[_bitmap TIFFRepresentation] forType:NSTIFFPboardType];
 
 	return self;
 }

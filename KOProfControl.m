@@ -7,7 +7,7 @@
 
 #import "KOProfControl.h"
 #import "KOProfView.h"
-#import "KOimageControl.h"
+#import "KOImageControl.h"
 
 @implementation KOProfControl
 
@@ -34,9 +34,8 @@
 //    KOImageControl  *control = [sender control];
     KOImageControl  *control = sender;
 //	KO_IMAGE	**f = [control images];
-	RecImage *img = [control image];
+	RecImage    *img = [control selectedImage];
 
-    int			ix = [control imageIndex];
 	float		*p, *q;
 	int			i, xDim, yDim, nImg, n;
 	int			x, y;
@@ -51,14 +50,12 @@
 	x = pt.x;
 	y = pt.y;
 
-//	p = (float **)f[ix]->real;
 	p = [img real];
 	xDim = [img xDim];
 	yDim = [img yDim];
 	nImg = [img zDim];
 //	re = p[y][x];
 	re = p[y * xDim + x];
-//	if (f[ix]->type == KO_COMPLEX) {
 	if ([img type] == RECIMAGE_COMPLEX) {
 		q = [img imag];
 //		p = (float **)f[ix]->imag;
@@ -146,7 +143,7 @@
 
 - horButtonPressed:sender
 {
-	_horizontal = [(NSButtonCell *)[sender selectedCell] tag];
+	_horizontal = (int)[(NSButtonCell *)[sender selectedCell] tag];
 	return self;
 }
 
