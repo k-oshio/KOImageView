@@ -62,9 +62,6 @@
 - (void)setRotateInView:(int)angle;
 - (void)setInterpolation:(BOOL)flag;
 - (void)displayImageData:(RecImage *)img;
-//- (void)displayImageData:(float *)data;
-//- (void)displayColorImage:(short *)r :(short *)g :(short *)b;
-//- (void)displayColorImage:(float *)r :(float *)g :(float *)b;
 - (void)setColorMode:(int)mode;
 - (void)setCursorMode:(int)mode;
 - (void)setWin:(int)win andLev:(int)lev;

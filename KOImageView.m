@@ -135,69 +135,59 @@
 	_interp = flag;
 }
 
-// display signed 12bit image using current win/lev/color
+// display selected image (single slice) using current win/lev/color
 // xdim/ydim : dim of image (not view)
 // img is already color
-- (void)displayImageDataX:(RecImage *)img
-{
-	int				i, j;
-	int				intensity;	// 8bit
-	unsigned char	*data = [_bitmap bitmapData];
-	unsigned char	*ovr_data = [_over bitmapData];
-
-	if (img == nil) {	// no image
-		return;
-	}
-// 12bit -> 8bit -> color
-	for (i = j = 0; i < _xdim * _ydim; i++, j+=3) {
-//		intensity = p[i] + LUTSIZE/2;
-		if (intensity < 0) intensity = 0;
-		if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-		data[j]		= _r[winLevTab[intensity]];
-		data[j+1]	= _g[winLevTab[intensity]];
-		data[j+2]	= _b[winLevTab[intensity]];
-	}
-// add overlay ###
-	if (_overlayOn) {
-		for (i = j = 0; i < _xdim * _ydim; i++, j+=3) {
-			if ((ovr_data[j] > 0) || (ovr_data[j+1] > 0) || (ovr_data[j+2] > 0)) {
-				data[j]		= ovr_data[j];
-				data[j+1]	= ovr_data[j+1];
-				data[j+2]	= ovr_data[j+2];
-			}
-		}
-	}
-
-	[self display];
-}
 
 //- (void)displayColorImage:(short *)r :(short *)g :(short *)b
-- (void)displayImageData:(RecImage *)img
+- (void)displayImageData:(RecImage *)slc
 {
-	int				i, j;
+	int				i, ix;
     int             n;
-    float           *p;
+    float           *r, *g, *b;
 	int				intensity;	// 8bit
 	unsigned char	*data = [_bitmap bitmapData];
-    unsigned char    *ovr_data = [_over bitmapData];
+    unsigned char   *ovr_data = [_over bitmapData];
 
-	if (img == nil) {	// no image
+	if (slc == nil) {	// no image
 		return;
 	}
 
 // imaga data
-    p = [img data];
-    n = [img dataLength] * [img pixSize];
+    n = [slc dataLength];
+    r = [slc data];
+    g = r + n;
+    b = g + n;
 
-// 12bit -> 8bit -> color
-	for (i = j = 0; i < n; i++) {
-		intensity = p[i] + LUTSIZE/2;
-		if (intensity < 0) intensity = 0;
-		if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-		data[i] = winLevTab[intensity];
+// 12bit -> 8bit -> gray -> color lookup not done yet ###
+	for (i = ix = 0; i < n; i++) {
+        // r
+        intensity = r[i] + LUTSIZE/2;
+        if (intensity < 0) intensity = 0;
+        if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
+        data[ix] = winLevTab[intensity];
         if (ovr_data[i] > 0) {
-            data[i] += ovr_data[i];
+            data[ix] += ovr_data[ix];
         }
+        ix++;
+        // g
+        intensity = g[i] + LUTSIZE/2;
+        if (intensity < 0) intensity = 0;
+        if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
+        data[ix] = winLevTab[intensity];
+        if (ovr_data[i] > 0) {
+            data[ix] += ovr_data[ix];
+        }
+        ix++;
+        // b
+        intensity = b[i] + LUTSIZE/2;
+        if (intensity < 0) intensity = 0;
+        if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
+        data[ix] = winLevTab[intensity];
+        if (ovr_data[i] > 0) {
+            data[ix] += ovr_data[ix];
+        }
+        ix++;
 	}
 	[self display];
 }

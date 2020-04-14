@@ -223,7 +223,6 @@ lp1(float a)
 {
 	NSArray	*objs;
 	self = [self init];
-//    [NSBundle loadNibNamed:@"ImageBrowser" owner:self];
 	[[NSBundle mainBundle] loadNibNamed:@"ImageBrowser" owner:self topLevelObjects:&objs];
 
 	return self;
@@ -307,13 +306,6 @@ lp1(float a)
 //    const char *path;
  	RecImage	*img;	// testing ... ###
 
-// load images -> f
-	if (_indicator) {
-		[_indicator setPercentage:0];
-		[_indicator setTitle:@"Loading..."];
-		[_indicator show:self];
-	}
-
     // RecImage
 	if ((img = [RecImage imageFromFile:[[_files objectAtIndex:0] path] relativePath:NO])) {
         // recimage ... -> make 3D (removde upper loops)
@@ -326,9 +318,6 @@ lp1(float a)
 	if ((img = [RecImage imageWithDicomFiles:_files])) {
     // ## do nothing
 	}
-    // scale & complex
-//    _cpx = ([img type] == RECIMAGE_COMPLEX);
-    _dispScale = 4000.0 / [img maxVal];
     
     [self setImage:img];
     [self setDispBuf];
@@ -362,21 +351,22 @@ lp1(float a)
     g = r + [_dispBuf dataLength];
     b = g + [_dispBuf dataLength];
     
-    max_val = [_img maxVal];
+    max_val = fmax([_img maxVal], -[_img minVal]);
+    _dispScale = max_val / full_int;
 
-//    int         _cpxMode;    // 0:Mag, 1:Re, 2:Im, 3:Phs, 4:color
     switch ([_img type]) {
 // real
     case RECIMAGE_REAL :
         p = [_img data];
         n = [_img dataLength];
         for (i = 0; i < n; i++) {
-            r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+            r[i] = g[i] = b[i] = p[i] / _dispScale;
         }
         break;
 // complex -> real
     case RECIMAGE_COMPLEX :
         tmp = [_img copy];
+        //  0:Mag, 1:Re, 2:Im, 3:Phs, 4:color
         switch (_cpxMode) {
         default :
         case 0 :     // mag
@@ -384,7 +374,7 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+                r[i] = g[i] = b[i] = p[i] / _dispScale;
             }
             break;
         case 1 :     // real
@@ -392,7 +382,7 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+                r[i] = g[i] = b[i] = p[i] / _dispScale;
             }
             break;
         case 2 :     // imag
@@ -408,7 +398,7 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+                r[i] = g[i] = b[i] = p[i] * 1000;
             }
             break;
         case 4 :     // color
@@ -615,7 +605,12 @@ typedef struct {
 // display with current win/lev and image number
 - (void)displayImage
 {
-    [_view displayImageData:_dispBuf];
+    RecImage    *slice;
+    int         ix;
+
+    ix = [self imageIndex];
+    slice = [_dispBuf sliceAtIndex:ix];
+    [_view displayImageData:slice];
 /*
 	int		ix = [_numSlider intValue];
 	if (_f != NULL && _f[ix] != NULL) {
@@ -933,7 +928,8 @@ typedef struct {
 - (IBAction)cpxModeChanged:(id)sender
 {
     _cpxMode = (int)[(NSMenuItem *)[sender selectedCell] tag];
-	[self loadImages];
+	[self setDispBuf];
+    [self displayImage];
 	[_appControl imageChanged:self];
 }
 
@@ -968,7 +964,7 @@ typedef struct {
 - (IBAction)setLogP1:(id)sender
 {
 	_logP1 = [(NSButton *)sender state];
-	[self loadImages];
+	[self setDispBuf];
 	[self autoWinLev:self];
 }
 
