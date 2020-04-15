@@ -29,36 +29,37 @@
 	return self;
 }
 
-- (void)drawProfileAt:(NSPoint)pt from:sender
+//###   use dispBuf ... mag/phase etc are already calculated
+//###   just use red channel for color modes
+- (void)drawProfileAt:(NSPoint)pt from:(KOImageControl *)ctl
 {
-//    KOImageControl  *control = [sender control];
-    KOImageControl  *control = sender;
-//	KO_IMAGE	**f = [control images];
-	RecImage    *img = [control selectedImage];
+    KOImageControl  *control = ctl;
+	RecImage    *img = [control image];
+    RecImage    *slc = [control selectedImage];
+//    int         cpxMode = [control cpxMode];
 
 	float		*p, *q;
 	int			i, xDim, yDim, nImg, n;
 	int			x, y;
     int			di, dj;
-    float		val;
+    float		val, mx;
 	float		re, im;
 	NSString	*tmpString;
 	char		tmpCstr[256];
-//	float		buf[KO_MAXDIM];
     float       *buf;
 
 	x = pt.x;
 	y = pt.y;
 
-	p = [img real];
 	xDim = [img xDim];
 	yDim = [img yDim];
 	nImg = [img zDim];
-//	re = p[y][x];
+ 
+ // report cursor at current slicer   
+    p = [slc real];
 	re = p[y * xDim + x];
 	if ([img type] == RECIMAGE_COMPLEX) {
-		q = [img imag];
-//		p = (float **)f[ix]->imag;
+		q = [slc imag];
 		im = q[y * xDim + x];
 	} else {
 		im = 0;
@@ -72,9 +73,7 @@
 
     switch (_horizontal) {
     case 0:	// vertical
-    //    p = (float **)f[ix]->real;
-	//	n = f[0]->ydim;
-		p = [img data];
+		p = [slc data];
 		n = yDim;
         buf = (float *)malloc(sizeof(float) * n);
 		for (i = 0; i < yDim; i++) {
@@ -89,8 +88,6 @@
         [self setPoint:x:y:p[y*xDim + x]];
         break;
     case 1:		// horizontal
-    //    p = (float **)f[ix]->real;
-	//	n = f[0]->xdim;
 		n = xDim;
         buf = (float *)malloc(sizeof(float) * n);
 		for (i = 0; i < xDim; i++) {
@@ -105,17 +102,14 @@
         [self setPoint:x:y:p[y*xDim + x]];
         break;
     case 2:		// time
-   //     n = [[sender control] nImages];
-   //     n = [control nImages];
 		n = nImg;
         buf = (float *)malloc(sizeof(float) * n);
+        p = [img data];
         for (i = 0; i < n; i++) {
-        //    p = (float **)f[i]->real;
-			p = [img data] + i * xDim * yDim;
             val = 0;
             for (di = - _width; di < _width + 1; di++) {
             for (dj = - _width; dj < _width + 1; dj++) {
-                val += p[(y + di) * xDim + x + dj];
+                val += p[i * yDim * xDim + (y + di) * xDim + x + dj];
             }
             }
             buf[i] = val / (_width * 2 + 1) / (_width * 2 + 1);
@@ -135,6 +129,12 @@
 			buf[i] -= mean;
 		}
 	}
+ 
+    // scale
+    mx = fmax([img maxVal], -[img minVal]);
+    for (i = 0; i < n; i++) {
+        buf[i] *= 1000.0 / mx;
+    }
 
 	[_profView setData:buf:n];
 	[_profView display];

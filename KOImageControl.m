@@ -340,17 +340,23 @@ lp1(float a)
 - (void)setDispBuf     // convert img to scaled color image
 {
     RecImage    *tmp;
-    float       *p, *q;                 // input
+    float       *p, *q;             // input
     float       *r, *g, *b;         // output
+    float       *gray;
     float       max_val;
     int         full_int = 4000;
     int         i, n;
 
-    _dispBuf = [RecImage imageOfType:RECIMAGE_COLOR withImage:_img];
-    r = [_dispBuf real];
-    g = r + [_dispBuf dataLength];
-    b = g + [_dispBuf dataLength];
-    
+    _dispBuf = [RecImage imageOfType:[_img type] withImage:_img];
+    if ([_dispBuf type] == RECIMAGE_COLOR) {
+        r = [_dispBuf real];
+        g = r + [_dispBuf dataLength];
+        b = g + [_dispBuf dataLength];
+        gray = NULL;
+    } else {
+        gray = [_dispBuf data];
+        r = g = b = NULL;
+    }
     max_val = fmax([_img maxVal], -[_img minVal]);
     _dispScale = max_val / full_int;
 
@@ -360,7 +366,7 @@ lp1(float a)
         p = [_img data];
         n = [_img dataLength];
         for (i = 0; i < n; i++) {
-            r[i] = g[i] = b[i] = p[i] / _dispScale;
+            gray[i] = p[i] / _dispScale;
         }
         break;
 // complex -> real
@@ -374,7 +380,7 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                r[i] = g[i] = b[i] = p[i] / _dispScale;
+                gray[i] = p[i] / _dispScale;
             }
             break;
         case 1 :     // real
@@ -382,7 +388,7 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                r[i] = g[i] = b[i] = p[i] / _dispScale;
+                gray[i] = p[i] / _dispScale;
             }
             break;
         case 2 :     // imag
@@ -390,7 +396,7 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                r[i] = g[i] = b[i] = p[i] * full_int / max_val;
+                gray[i] = p[i] * full_int / max_val;
             }
             break;
         case 3 :     // phase
@@ -398,15 +404,18 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                r[i] = g[i] = b[i] = p[i] * 1000;
+                gray[i] = p[i] * 1000;
             }
             break;
         case 4 :     // color
+            // ### not implemented yet
             break;
         }
         break;
         // color
     case RECIMAGE_COLOR :
+        [_dispBuf copyImageData:_img];
+        [_dispBuf multByConst:1.0 / _dispScale];
         break;
     }
 
@@ -1027,6 +1036,11 @@ typedef struct {
 - (KOProfControl *)profile
 {
     return _profile;
+}
+
+- (int)cpxMode
+{
+    return _cpxMode;
 }
 
 - (int)tag;

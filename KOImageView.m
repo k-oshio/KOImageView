@@ -155,40 +155,61 @@
 
 // imaga data
     n = [slc dataLength];
-    r = [slc data];
-    g = r + n;
-    b = g + n;
+    if ([slc type] == RECIMAGE_COLOR) {
+        r = [slc data];
+        g = r + n;
+        b = g + n;
+    } else {
+        r = [slc data];
+    }
 
 // 12bit -> 8bit -> gray -> color lookup not done yet ###
-	for (i = ix = 0; i < n; i++) {
-        // r
-        intensity = r[i] + LUTSIZE/2;
-        if (intensity < 0) intensity = 0;
-        if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-        data[ix] = winLevTab[intensity];
-        if (ovr_data[i] > 0) {
-            data[ix] += ovr_data[ix];
+    if ([slc type] == RECIMAGE_COLOR) {
+        for (i = ix = 0; i < n; i++) {
+            // r
+            intensity = r[i] + LUTSIZE/2;
+            if (intensity < 0) intensity = 0;
+            if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
+            data[ix] = winLevTab[intensity];
+            if (ovr_data[i] > 0) {
+                data[ix] += ovr_data[ix];
+            }
+            ix++;
+            // g
+            intensity = g[i] + LUTSIZE/2;
+            if (intensity < 0) intensity = 0;
+            if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
+            data[ix] = winLevTab[intensity];
+            if (ovr_data[i] > 0) {
+                data[ix] += ovr_data[ix];
+            }
+            ix++;
+            // b
+            intensity = b[i] + LUTSIZE/2;
+            if (intensity < 0) intensity = 0;
+            if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
+            data[ix] = winLevTab[intensity];
+            if (ovr_data[i] > 0) {
+                data[ix] += ovr_data[ix];
+            }
+            ix++;
         }
-        ix++;
-        // g
-        intensity = g[i] + LUTSIZE/2;
-        if (intensity < 0) intensity = 0;
-        if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-        data[ix] = winLevTab[intensity];
-        if (ovr_data[i] > 0) {
-            data[ix] += ovr_data[ix];
+    } else {
+        for (i = ix = 0; i < n; i++, ix+=3) {
+            // r
+            intensity = r[i] + LUTSIZE/2;
+            if (intensity < 0) intensity = 0;
+            if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
+            data[ix  ] = _r[winLevTab[intensity]];
+            data[ix+1] = _g[winLevTab[intensity]];
+            data[ix+2] = _b[winLevTab[intensity]];
+            if (ovr_data[i] > 0) {
+                data[ix  ] += ovr_data[ix  ];
+                data[ix+1] += ovr_data[ix+1];
+                data[ix+2] += ovr_data[ix+2];
+            }
         }
-        ix++;
-        // b
-        intensity = b[i] + LUTSIZE/2;
-        if (intensity < 0) intensity = 0;
-        if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
-        data[ix] = winLevTab[intensity];
-        if (ovr_data[i] > 0) {
-            data[ix] += ovr_data[ix];
-        }
-        ix++;
-	}
+    }
 	[self display];
 }
 
@@ -520,7 +541,7 @@
     NSPoint         whereInView = [self convertPoint:whereInWindow
                                         fromView:nil];
     NSPoint         whereInImage = [self pointInImage:whereInView];
-    unsigned int    modifier = [theEvent modifierFlags];
+    unsigned int    modifier = (unsigned int)[theEvent modifierFlags];
     int             x = 0, y = 0, ix;
     int             slc = [[[self control] numSlider] intValue];
     static int      oldX, oldY;

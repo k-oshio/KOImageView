@@ -96,10 +96,7 @@
 - (IBAction)zoomOut:(id)sender;
 - (IBAction)setLogP1:(id)sender;
 
-//- (void)openFiles:(NSArray *)files;
 - (void)loadImages;
-//- (void)setImages:(KO_IMAGE **)f nImages:(int)n;    // ## KO_IMAGE
-//- (void)setImage:(RecImage *)img;
 - (void)changeWin:(int)w lev:(int)l from:sender;
 - (void)changeImage:(int)y from:(id)sender;
 - (void)moveByX:(int)x andY:(int)y from:(id)sender;	// called by upper control (not by view)
@@ -115,20 +112,19 @@
 
 // accessors
 - (NSArray *)files;
-//- (KO_IMAGE **)images;  // ## KO_IMAGE
-- (RecImage *)image;
+- (RecImage *)image;            // 3D
+- (RecImage *)selectedImage;    // slice
 - (void)setImage:(RecImage *)img;
 - (int)nImages;
 - (void)setDispBuf;     // convert img to scaled real image
 - (int)imageIndex;	// probably not necessary
-- (RecImage *)selectedImage;
 - (KOImageView *)view;
 - (NSWindow *)window;
-//- (NSString *)currentDirectory;
 - (KOSlider *)winSlider;
 - (KOSlider *)levSlider;
 - (KOSlider *)numSlider;
 - (KOProfControl *)profile;
+- (int)cpxMode;
 - (int)tag;
 - (void)setTag:(int)aTag;
 //- (BOOL)logP1;

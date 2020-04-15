@@ -9,6 +9,7 @@
 */
 
 #import <Cocoa/Cocoa.h>
+@class KOImageControl;
 
 @interface KOProfControl:NSObject
 {
@@ -40,7 +41,7 @@
 - (int)horizontal;
 - (float)gain;
 - (int)offs;
-- (void)drawProfileAt:(NSPoint)pt from:sender;
+- (void)drawProfileAt:(NSPoint)pt from:(KOImageControl *)ctl;
 - (void) changeGain:(int)x offs:(int)y;
 
 @end

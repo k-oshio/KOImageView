@@ -119,9 +119,6 @@
     NSEnumerator    *enumerator = [_imageControlArray objectEnumerator];
     KOImageControl  *ctr;
 
-    // draw profile
-    [_profile drawProfileAt:pt from:self];
-
     // draw cursor on every image windows
     while (ctr = [enumerator nextObject]) {
         [ctr reportCursorAt:pt from:self];

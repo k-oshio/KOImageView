@@ -10,15 +10,13 @@
 
 //#import "KOImageControl.h"
 #import "KOProfControl.h"
-//#import "KOPspaceControl.h"
-//#import "image.h"
 #import <RecKit/RecKit.h>
 
 @interface KOWindowControl:NSObject
 {
 	IBOutlet KOProfControl		*_profile;
-	IBOutlet NSWindow			*reorderPanel;
-	IBOutlet NSTextField		*loopSizeField;
+//	IBOutlet NSWindow			*reorderPanel;
+//	IBOutlet NSTextField		*loopSizeField;
 //	IBOutlet KOPspaceControl	*_pspace;
     NSMutableArray				*_imageControlArray;
 // OpenRaw
@@ -47,15 +45,13 @@
 - (IBAction)backward:(id)sender;
 
 // reordering images
-- (IBAction)reorderImages:(id)sender;
-- (IBAction)revertOrder:(id)sender;
+//- (IBAction)reorderImages:(id)sender;
+//- (IBAction)revertOrder:(id)sender;
 
 // profile / cursor interface
 - (void)reportCursorAt:(NSPoint)pt from:sender;
 - (void)moveByX:(int)x andY:(int)y from:(id)sender;
-//- (KO_IMAGE **)images;  // ## KO_IMAGE
 - (RecImage *)image;
-//- (int)nImages;
 - (int)imageIndex;
 - (void)imageChanged:(id)sender;
 
