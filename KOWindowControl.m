@@ -48,7 +48,6 @@
     [_imageControlArray addObject:control];
 }
 
-/*
 - (IBAction)openRaw:(id)sender
 {
     KOImageControl  *control;
@@ -56,10 +55,9 @@
 	[rawPanel orderOut:self];
     control = [[KOImageControl alloc] initFromNib];
     [control openRawXDim:[rawXField intValue] yDim:[rawYField intValue] zDim:[rawZField intValue]
-		size:[rawSize tag] order:[rawOrder tag] type:[rawType tag]];
+		pixSize:(int)[rawSize tag] order:(int)[rawOrder tag] type:(int)[rawType tag]];
     [_imageControlArray addObject:control];
 }
-*/
 
 - (IBAction)saveSingle:(id)sender
 {

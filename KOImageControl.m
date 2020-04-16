@@ -23,184 +23,6 @@ int max_val = 4000; // constant
 // dispMode  : 0:integer -> real, 1:real -> real, 2:cpx -> mag, 3:cpx -> real, 4:cpx -> imag,
 //              5:cpx -> p3, 6:cpx ->phase (real), 7:cpx->phase color, 8:color->color
 /*
-KO_IMAGE *
-cpx2real(KO_IMAGE *raw, int cpxMode, float f_max)
-{
-    KO_IMAGE    *col; // real or color image
-    float       *r, *g, *b;
-    float       *p, *q, *p3;
-    short       *pi;
-    int         i;
-    float       mg, th;
-    int         dispMode = 0;
-
-    switch (raw->type) {
-    case KO_INTEGER :
-        dispMode = 0;
-        break;
-    case KO_REAL :
-    default :
-        dispMode = 1;
-        break;
-    case KO_COMPLEX:
-        switch (cpxMode) {
-        case 0 : // mag
-            dispMode = 2;   // cpx->mg
-            break;
-        case 1 : // real
-            dispMode = 3;   // cpx->real
-            break;
-        case 2 : // imag
-            dispMode = 4;   // cpx->imag
-            break;
-        case 3 : // phase
-            dispMode = 6;   // cpx->phase
-            break;
-        case 4 : // color
-            dispMode = 7;   // cpx->color
-            break;
-        }
-        break;
-    case KO_COLOR:
-        switch (cpxMode) {
-        case 4 :
-        default :
-            dispMode = 8;   // rgb color
-            break;
-        case 0 :
-        case 1 :
-            dispMode = 3;   // real
-            break;
-        case 2 :
-            dispMode = 4;   // imag;
-            break;
-        case 3 :
-            dispMode = 5;   // p3
-            break;
-        }
-        break;
-    }
-
-// alloc col (KO_IMAGE)
-    if (dispMode == 7 || dispMode == 8) {
-		col = new_image(raw->xdim, raw->ydim, KO_COLOR);
-    } else {
-		col = new_image(raw->xdim, raw->ydim, KO_REAL);
-    }
-// copy data
-	switch (dispMode) {
-	case 0 :	// integer
-		r = (float *)col->real[0];
-		pi = (short *)raw->real[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = pi[i];
-        }
-        break;
-	case 1 :	// real
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = p[i] * max_val / f_max;
-        }
-        break;
-	case 2 :	// cpx -> mag
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = sqrt(p[i]*p[i] + q[i]*q[i]) * max_val / f_max;
-        }
-		break;
-	case 3 :	// cpx -> real
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = p[i] * max_val / f_max;
-        }
-		break;
-	case 4 :	// cpx -> imag
-		r = (float *)col->real[0];
-		p = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = p[i] * max_val / f_max;
-        }
-		break;
-	case 5 :	// cpx -> p3
-		r = (float *)col->real[0];
-        p3 = (float *)raw->p3[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = p3[i] * max_val / f_max;
-        }
-		break;
-	case 6 :	// cpx -> phase
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-			th = atan2(q[i], p[i]);
-			r[i] = th * max_val / M_PI;
-        }
-		break;
-	case 7 :	// phase color
-		r = (float *)col->real[0];
-		g = (float *)col->imag[0];
-		b = (float *)col->p3[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-			mg = p[i]*p[i] + q[i]*q[i];
-			mg = sqrt(mg) / f_max;
-			th = atan2(q[i], p[i]);
-            // === new version (3-27-2013) ==
-            if (th < - 2*M_PI/3) {
-                r[i] = 0;
-                g[i] = max_val * mg * 3 * (-2*M_PI/3 - th) / M_PI;
-                b[i] = max_val * mg;
-            } else
-            if (th < - M_PI / 3.0) {
-                r[i] = max_val * mg * 3 * (th + 2*M_PI/3) / M_PI;
-                g[i] = 0;
-                b[i] = max_val * mg;
-            } else
-            if (th < 0) {
-                r[i] = max_val * mg;
-                g[i] = 0;
-                b[i] = max_val * mg * 3 * (-th) / M_PI;
-            } else
-            if (th < M_PI/3) {
-                r[i] = max_val * mg;
-                g[i] = max_val * mg * 3 * (th) / M_PI;
-                b[i] = 0;
-            } else
-            if (th < 2.0 * M_PI / 3.0) {
-                r[i] = max_val * mg * 3 * (2*M_PI/3 - th) / M_PI;
-                g[i] = max_val * mg;
-                b[i] = 0;
-            } else {
-                r[i] = 0;
-                g[i] = max_val * mg;
-                b[i] = max_val * mg * 3 * (th - 2*M_PI/3) / M_PI;
-            }
-        }
-		break;
-	case 8 :	// RGB color
-		r = (float *)col->real[0];
-		g = (float *)col->imag[0];
-		b = (float *)col->p3[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        p3 = (float *)raw->p3[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = p[i] * max_val / f_max;
-            g[i] = q[i] * max_val / f_max;
-            b[i] = p3[i] * max_val / f_max;
-        }
-		break;
-	}
-    free_image(raw);
-
-    return col;
-}
 float
 lp1(float a)
 {
@@ -232,7 +54,6 @@ lp1(float a)
 {
 	self = [super init];
     _files = nil;
-//	_f = origArray = alteredArray = NULL;
 	_img = _dispBuf = nil;
     _timer = nil;
     _cineMode = 0;	// space
@@ -318,7 +139,22 @@ lp1(float a)
 	if ((img = [RecImage imageWithDicomFiles:_files])) {
     // ## do nothing
 	}
-    
+
+    switch ([img type]) {
+    case RECIMAGE_REAL :
+        _imgType = RECIMAGE_REAL;
+        break;
+    case RECIMAGE_COMPLEX :
+        _imgType = RECIMAGE_COMPLEX;
+        break;
+    case RECIMAGE_COLOR :
+    case RECIMAGE_VECTOR :
+        _imgType = RECIMAGE_COLOR;
+        break;
+    default :
+        _imgType = RECIMAGE_COMPLEX;
+        break;
+    }
     [self setImage:img];
     [self setDispBuf];
     
@@ -342,25 +178,28 @@ lp1(float a)
     RecImage    *tmp;
     float       *p, *q;             // input
     float       *r, *g, *b;         // output
+    float       mg, th;
     float       *gray;
     float       max_val;
     int         full_int = 4000;
     int         i, n;
 
-    _dispBuf = [RecImage imageOfType:[_img type] withImage:_img];
-    if ([_dispBuf type] == RECIMAGE_COLOR) {
+    if (_imgType == RECIMAGE_COLOR ||
+        (_imgType == RECIMAGE_COMPLEX && _cpxMode == 4)) {
+        _dispBuf = [RecImage imageOfType:RECIMAGE_COLOR withImage:_img];
         r = [_dispBuf real];
         g = r + [_dispBuf dataLength];
         b = g + [_dispBuf dataLength];
         gray = NULL;
     } else {
+        _dispBuf = [RecImage imageOfType:RECIMAGE_REAL withImage:_img];
         gray = [_dispBuf data];
         r = g = b = NULL;
     }
     max_val = fmax([_img maxVal], -[_img minVal]);
     _dispScale = max_val / full_int;
 
-    switch ([_img type]) {
+    switch (_imgType) {
 // real
     case RECIMAGE_REAL :
         p = [_img data];
@@ -396,7 +235,7 @@ lp1(float a)
             p = [tmp data];
             n = [tmp dataLength];
             for (i = 0; i < n; i++) {
-                gray[i] = p[i] * full_int / max_val;
+                gray[i] = p[i] / _dispScale;
             }
             break;
         case 3 :     // phase
@@ -408,79 +247,61 @@ lp1(float a)
             }
             break;
         case 4 :     // color
-            // ### not implemented yet
+            p = [tmp real];
+            q = [tmp imag];
+            n = [tmp dataLength];
+            for (i = 0; i < n; i++) {
+                mg = sqrt(p[i]*p[i] + q[i]*q[i]);
+                th = atan2(q[i], p[i]);
+                
+                // === (3-27-2013) ==
+                if (th < - 2*M_PI/3) {
+                    r[i] = 0;
+                    g[i] = mg * 3 * (-2*M_PI/3 - th) / M_PI;
+                    b[i] = mg;
+                } else
+                if (th < - M_PI / 3.0) {
+                    r[i] = mg * 3 * (th + 2*M_PI/3) / M_PI;
+                    g[i] = 0;
+                    b[i] = mg;
+                } else
+                if (th < 0) {
+                    r[i] = mg;
+                    g[i] = 0;
+                    b[i] = mg * 3 * (-th) / M_PI;
+                } else
+                if (th < M_PI/3) {
+                    r[i] = mg;
+                    g[i] = mg * 3 * (th) / M_PI;
+                    b[i] = 0;
+                } else
+                if (th < 2.0 * M_PI / 3.0) {
+                    r[i] = mg * 3 * (2*M_PI/3 - th) / M_PI;
+                    g[i] = mg;
+                    b[i] = 0;
+                } else {
+                    r[i] = 0;
+                    g[i] = mg;
+                    b[i] = mg * 3 * (th - 2*M_PI/3) / M_PI;
+                }
+            }
+            [_dispBuf multByConst:1.0 / _dispScale];
             break;
         }
         break;
         // color
     case RECIMAGE_COLOR :
-        [_dispBuf copyImageData:_img];
+       [_dispBuf copyImageData:_img];
         [_dispBuf multByConst:1.0 / _dispScale];
         break;
     }
-
-
 }
 
-/*
-- (void)setImages:(KO_IMAGE **)f nImages:(int)n
+- (void)openRawXDim:(int)xDim yDim:(int)yDim zDim:(int)zDim pixSize:(int)size order:(int)order type:(int)type
 {
-	int		xdim, ydim;
-	int		i;
-
-// free old images
-	if (origArray != NULL) {
-			for (i = 0; i < _nImages; i++) {
-				free_image(origArray[i]);
-			}
-			free(origArray);
-			if (alteredArray) free(alteredArray);
-	}
-
-// set i-var
-    _f = origArray = f;
-	_nImages = n;
-	alteredArray = (KO_IMAGE **)malloc(sizeof(KO_IMAGE *) * n);
-
-// update n-slider (before displayImage)
-	[_numSlider setMin:0 andMax:n-1];
-	[_numSlider setValue:0];
-
-// set view
-// bug... view doesn't know size of each image (if different)
-    xdim = ydim = 0;
-    for (i = 0; i < n; i++) {
-        if (xdim < f[i]->xdim) xdim = f[i]->xdim;
-        if (ydim < f[i]->ydim) ydim = f[i]->ydim;
-    }
-	[_view initImage:xdim:ydim];
-	[self updateWinLev];
-	[self displayImage];
-	if (_scaleView) {
-		[_scaleView initScale:64 withView:_view];
-		[_scaleView display];
-	}
+    // not implemented yet ###
 }
-*/
-/*
-- (void)saveSingle
-{
-	NSSavePanel	*savePanel = [NSSavePanel savePanel];
-	NSString	*path;
-	int			sts;
-	int			ix = [_numSlider intValue];
-	
-	if (!savePanel) savePanel = [NSSavePanel savePanel];
-//	sts = [savePanel runModalForDirectory:NSHomeDirectory() file:nil];
-    sts = [savePanel runModal];
-	if (sts != NSModalResponseOK) {
-		return;
-	} else {
-		path = [[savePanel URL] path];
-	}
-	put_image(_f[ix], (char *)[path UTF8String]);  
-}
-*/
+
 typedef struct {
 	int				magic;	// KO_MAGIC3
 	int				type;
@@ -489,126 +310,50 @@ typedef struct {
 	int				zdim;
 	int				fill[3];
 }	KO_HDR3;	// 32 bytes
-/*
-- (void)saveAsKOImageX
-{
-	NSSavePanel *savePanel = [NSSavePanel savePanel];
-	NSString    *path;
-	int         sts;
-	
-	if (!savePanel) savePanel = [NSSavePanel savePanel];
-    sts = [savePanel runModal];
-	if (sts != NSOKButton) {
-		return;
-	} else {
-		path = [[savePanel URL] path];
-	}
 
-// rewrite below (remove image lib)
-	put_image_block(_f, (char *)[path UTF8String], _nImages);  
-}
-*/
-
-// ## complex case doesn't work (converted to real when loaded)
 - (void)saveAsKOImage
 {
-/* do this later ###
-
-	NSSavePanel *savePanel = [NSSavePanel savePanel];
-	NSString    *path;
-    FILE        *fp;
-	int         sts;
-    int         i, j, size, type;
-    float       *buf;
-    short       *p;
-    KO_HDR3     hdr3;
-
-	if (!savePanel) savePanel = [NSSavePanel savePanel];
-    sts = [savePanel runModal];
-	if (sts != NSModalResponseOK) {
-		return;
-	} else {
-		path = [[savePanel URL] path];
-	}
-
-// rewrite below (remove image lib)
-//	put_image_block(_f, (char *)[path UTF8String], _nImages);  
-
-	hdr3.magic = 0x494d3344;	// 	"IM3D"
-    hdr3.type = _f[0]->type;
-    hdr3.xdim = _f[0]->xdim;
-    hdr3.ydim = _f[0]->ydim;
-    hdr3.zdim = _nImages;
-
-    size = _f[0]->size;
-    buf = (float *)malloc(sizeof(float) * size);
-    type = hdr3.type;
-    if (type == KO_INTEGER) {
-        hdr3.type = KO_REAL;
+    NSSavePanel *savePanel = [NSSavePanel savePanel];
+    NSString    *path;
+    int         sts;
+    
+    if (!savePanel) savePanel = [NSSavePanel savePanel];
+    sts = (int)[savePanel runModal];
+    if (sts != NSModalResponseOK) {
+        return;
+    } else {
+        path = [[savePanel URL] path];
+        [_img saveAsKOImage:path];
     }
-
-    fp = fopen((char *)[path UTF8String], "w");
-    if (fp != NULL) {
-        fwrite(&hdr3, sizeof(KO_HDR3), 1, fp);
-        switch (type) {
-        case    KO_INTEGER :
-            for (i = 0; i < _nImages; i++) {
-                p = (short *)_f[i]->real[0];
-                for (j = 0; j < size; j++) {
-                    buf[j] = p[j];
-                }
-                fwrite(buf, sizeof(float), size, fp);
-            }
-            break;
-        case    KO_REAL :
-            for (i = 0; i < _nImages; i++) {
-                fwrite((float *)(_f[i]->real[0]), sizeof(float), size, fp);
-            }
-            break;
-        case    KO_COMPLEX :
-            for (i = 0; i < _nImages; i++) {
-                fwrite((float *)(_f[i]->real[0]), sizeof(float), size, fp);
-            }
-            for (i = 0; i < _nImages; i++) {
-                fwrite((float *)(_f[i]->imag[0]), sizeof(float), size, fp);
-            }
-            break;
-        }
-        fclose(fp);
-        free(buf);
-    }
-    */
 }
 
-// Save All Images as PDF (or tiff)
+// Save All Images as PDF (actually tiff... pdf doesn't work)
 - (void)saveAllAsPDF
 {
-/* do this later ###
-
 	NSSavePanel	*savePanel = [NSSavePanel savePanel];
 	NSData		*data;
 	NSString	*path, *path2;
+    RecImage    *slc;
 	int			i, sts;
 	
 	if (!savePanel) savePanel = [NSSavePanel savePanel];
-//	sts = [savePanel runModalForDirectory:NSHomeDirectory() file:nil];
     sts = (int)[savePanel runModal];
 	if (sts != NSModalResponseOK) {
 		return;
 	} else {
 		path = [[savePanel URL] path];
-		for (i = 0; i < _nImages; i++) {
+		for (i = 0; i < [_dispBuf zDim]; i++) {
 			// make path
 			path2 = [NSString stringWithFormat:@"%@%03d.tiff", path, i];
 		//	path2 = [NSString stringWithFormat:@"%@%03d.pdf", path, i];
-			[_view displayImageData:(float *)_f[i]->real[0]];
+            slc = [_dispBuf sliceAtIndex:i];
+			[_view displayImageData:slc];
 			data = [[_view imageRep] TIFFRepresentation];
 		// data = [_view dataWithPDFInsideRect:[_view bounds]];
 			[data writeToFile:path2 atomically:YES];
 		}
 		[self displayImage];
 	}
- */   
 }
 
 // display with current win/lev and image number
@@ -620,26 +365,6 @@ typedef struct {
     ix = [self imageIndex];
     slice = [_dispBuf sliceAtIndex:ix];
     [_view displayImageData:slice];
-/*
-	int		ix = [_numSlider intValue];
-	if (_f != NULL && _f[ix] != NULL) {
-        switch (_f[ix]->type) {
-        case KO_REAL :
-            [_view displayImageData:(float *)_f[ix]->real[0]];
-            break;
-        case KO_COLOR :
-            [_view displayColorImage:(float *)_f[ix]->real[0]
-                                    :(float *)_f[ix]->imag[0]
-                                    :(float *)_f[ix]->p3[0]];
-            break;
-        default :
-            [_view displayImageData:NULL];
-            break;
-        }
-	} else {
-		[_view displayImageData:NULL];
-	}
-*/
 }
 
 - (void)displayImage:(int)ix
@@ -668,42 +393,6 @@ typedef struct {
 		[self displayImage];
 	}
 }
-/*
-- (IBAction)autoWinLevX:(id)sender;
-{
-	int		i;
-	int		max_pix, min_pix;
-	int		win, lev;
-	int		ix = [_numSlider intValue];
-	short	*sp;
-	float	*p;
-//	short	*p = (short *)_f[ix]->real[0];
-
-	if (_f == NULL) return;
-	min_pix = max_pix = 0;
-	if (_f[0]->type == KO_INTEGER) {
-		sp = (short *)_f[ix]->real[0];
-		for (i = 0; i < _f[0]->size; i++) {
-			if (sp[i] < min_pix) min_pix = sp[i];
-			if (sp[i] > max_pix) max_pix = sp[i];
-		}
-	} else {
-		p = (float *)_f[ix]->real[0];
-		for (i = 0; i < _f[0]->size; i++) {
-			if (p[i] < min_pix) min_pix = p[i];
-			if (p[i] > max_pix) max_pix = p[i];
-		}
-	}
-	if (min_pix == max_pix) return;
-	win = max_pix - min_pix;
-	lev = (min_pix + max_pix) / 2;
-	
-    [_winSlider setValue:win];
-    [_levSlider setValue:lev];
-	[self updateWinLev];
-	[self displayImage];
-}
-*/
 
 - (IBAction)autoWinLev:(id)sender;
 {
@@ -993,6 +682,11 @@ typedef struct {
 	return _img;
 }
 
+- (RecImage *)dispBuf
+{
+    return _dispBuf;
+}
+
 - (void)setImage:(RecImage *)img
 {
     _img = img;
@@ -1043,6 +737,11 @@ typedef struct {
     return _cpxMode;
 }
 
+- (int)imgType
+{
+    return _imgType;
+}
+
 - (int)tag;
 {
     return _tag;
@@ -1066,208 +765,5 @@ typedef struct {
     // this will release self
 //    [[NSApp delegate] removeFromArray:self];
 }
-
-/*
-- (KO_IMAGE *)cpx2real:(KO_IMAGE *)raw mode:(int)cpxMode max:(float)f_max
-{
-    KO_IMAGE    *col; // real or color image
-    float       *r, *g, *b;
-    float       *p, *q, *p3;
-	float		re, im;
-    short       *pi;
-    int         i;
-    float       mg, th;
-    int         dispMode = 0;
-
-    switch (raw->type) {
-    case KO_INTEGER :
-        dispMode = 0;
-        break;
-    case KO_REAL :
-    default :
-        dispMode = 1;
-        break;
-    case KO_COMPLEX:
-        switch (cpxMode) {
-        case 0 : // mag
-            dispMode = 2;   // cpx->mg
-            break;
-        case 1 : // real
-            dispMode = 3;   // cpx->real
-            break;
-        case 2 : // imag
-            dispMode = 4;   // cpx->imag
-            break;
-        case 3 : // phase
-            dispMode = 6;   // cpx->phase
-            break;
-        case 4 : // color
-            dispMode = 7;   // cpx->color
-            break;
-        }
-        break;
-    case KO_COLOR:
-        switch (cpxMode) {
-        case 4 :
-        default :
-            dispMode = 8;   // rgb color
-            break;
-        case 0 :
-        case 1 :
-            dispMode = 3;   // real
-            break;
-        case 2 :
-            dispMode = 4;   // imag;
-            break;
-        case 3 :
-            dispMode = 5;   // p3
-            break;
-        }
-        break;
-    }
-
-// alloc col (KO_IMAGE)
-    if (dispMode == 7 || dispMode == 8) {
-		col = new_image(raw->xdim, raw->ydim, KO_COLOR);
-    } else {
-		col = new_image(raw->xdim, raw->ydim, KO_REAL);
-    }
-// copy data
-	switch (dispMode) {
-	case 0 :	// integer
-		r = (float *)col->real[0];
-		pi = (short *)raw->real[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = pi[i];
-        }
-        break;
-	case 1 :	// real
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-        for (i = 0; i < raw->size; i++) {
-			if (_logP1) {
-				re = lp1(p[i]);
-			} else {
-				re = p[i];
-			}
-            r[i] = re * max_val / f_max;
-        }
-        break;
-	case 2 :	// cpx -> mag
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-			if (_logP1) {
-				re = lp1(p[i]);
-				im = lp1(q[i]);
-			} else {
-				re = p[i];
-				im = q[i];
-			}
-            r[i] = sqrt(re*re + im*im) * max_val / f_max;
-        }
-		break;
-	case 3 :	// cpx -> real
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-        for (i = 0; i < raw->size; i++) {
-			if (_logP1) {
-				re = lp1(p[i]);
-			} else {
-				re = p[i];
-			}
-            r[i] = re * max_val / f_max;
-        }
-		break;
-	case 4 :	// cpx -> imag
-		r = (float *)col->real[0];
-		p = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-			if (_logP1) {
-				im = lp1(p[i]);
-			} else {
-				im = p[i];
-			}
-            r[i] = im * max_val / f_max;
-        }
-		break;
-	case 5 :	// cpx -> p3
-		r = (float *)col->real[0];
-        p3 = (float *)raw->p3[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = p3[i] * max_val / f_max;
-        }
-		break;
-	case 6 :	// cpx -> phase
-		r = (float *)col->real[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-			th = atan2(q[i], p[i]);
-			r[i] = th * max_val / M_PI;
-        }
-		break;
-	case 7 :	// phase color
-		r = (float *)col->real[0];
-		g = (float *)col->imag[0];
-		b = (float *)col->p3[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        for (i = 0; i < raw->size; i++) {
-			mg = p[i]*p[i] + q[i]*q[i];
-			mg = sqrt(mg) / f_max;
-			th = atan2(q[i], p[i]);
-            // === new version (3-27-2013) ==
-            if (th < - 2*M_PI/3) {
-                r[i] = 0;
-                g[i] = max_val * mg * 3 * (-2*M_PI/3 - th) / M_PI;
-                b[i] = max_val * mg;
-            } else
-            if (th < - M_PI / 3.0) {
-                r[i] = max_val * mg * 3 * (th + 2*M_PI/3) / M_PI;
-                g[i] = 0;
-                b[i] = max_val * mg;
-            } else
-            if (th < 0) {
-                r[i] = max_val * mg;
-                g[i] = 0;
-                b[i] = max_val * mg * 3 * (-th) / M_PI;
-            } else
-            if (th < M_PI/3) {
-                r[i] = max_val * mg;
-                g[i] = max_val * mg * 3 * (th) / M_PI;
-                b[i] = 0;
-            } else
-            if (th < 2.0 * M_PI / 3.0) {
-                r[i] = max_val * mg * 3 * (2*M_PI/3 - th) / M_PI;
-                g[i] = max_val * mg;
-                b[i] = 0;
-            } else {
-                r[i] = 0;
-                g[i] = max_val * mg;
-                b[i] = max_val * mg * 3 * (th - 2*M_PI/3) / M_PI;
-            }
-        }
-		break;
-	case 8 :	// RGB color
-		r = (float *)col->real[0];
-		g = (float *)col->imag[0];
-		b = (float *)col->p3[0];
-		p = (float *)raw->real[0];
-		q = (float *)raw->imag[0];
-        p3 = (float *)raw->p3[0];
-        for (i = 0; i < raw->size; i++) {
-            r[i] = p[i] * max_val / f_max;
-            g[i] = q[i] * max_val / f_max;
-            b[i] = p3[i] * max_val / f_max;
-        }
-		break;
-	}
-    free_image(raw);
-
-    return col;
-}
-*/
 
 @end

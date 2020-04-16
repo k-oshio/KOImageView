@@ -15,9 +15,6 @@
 @interface KOWindowControl:NSObject
 {
 	IBOutlet KOProfControl		*_profile;
-//	IBOutlet NSWindow			*reorderPanel;
-//	IBOutlet NSTextField		*loopSizeField;
-//	IBOutlet KOPspaceControl	*_pspace;
     NSMutableArray				*_imageControlArray;
 // OpenRaw
 	IBOutlet NSTextField		*rawXField;
@@ -57,6 +54,5 @@
 
 // accessors
 - (KOProfControl *)profile;
-//- (KOPspaceControl *)pspace;
 
 @end

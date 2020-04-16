@@ -43,11 +43,6 @@
 
 // image data
 	NSArray     *_files;
-//	KO_IMAGE    **_f;       // ## KO_IMAGE -> make these RecImage
-//	KO_IMAGE	**origArray;
-//	KO_IMAGE	**alteredArray;
-//	int         _nImages;
-//	BOOL        _imageAllocated;
 	RecImage	*_img;      // image in file is kept unchanged (cpx)
     RecImage    *_dispBuf;  // scaled color image for display
     float       _dispScale;
@@ -62,8 +57,8 @@
 	float       _zoomFactor;
 
 // complex display mode
-//    BOOL        _cpx;
 	int         _cpxMode;	// 0:Mag, 1:Re, 2:Im, 3:Phs, 4:color
+    int         _imgType;   // RECIMAGE_REAL, RECIMAGE_COMPLEX, RECIMAGE_COLOR
 	BOOL		_logP1;
 
 // ID
@@ -105,6 +100,7 @@
 - (void)updateWinLev;
 - (void)displayImage;
 - (void)displayImage:(int)ix;
+- (void)openRawXDim:(int)xDim yDim:(int)yDim zDim:(int)zDim pixSize:(int)size order:(int)order type:(int)type;
 
 - (void)startTimer;
 - (void)stopTimer;
@@ -114,6 +110,7 @@
 - (NSArray *)files;
 - (RecImage *)image;            // 3D
 - (RecImage *)selectedImage;    // slice
+- (RecImage *)dispBuf;
 - (void)setImage:(RecImage *)img;
 - (int)nImages;
 - (void)setDispBuf;     // convert img to scaled real image
@@ -125,15 +122,10 @@
 - (KOSlider *)numSlider;
 - (KOProfControl *)profile;
 - (int)cpxMode;
+- (int)imgType;
 - (int)tag;
 - (void)setTag:(int)aTag;
 //- (BOOL)logP1;
-
-// ### remove KO_IMAGE
-// RecImage methods
-//- (KO_IMAGE **)koImageWithRecImage:(RecImage *)rec nImg:(int *)n;
-//- (RecImage *)recImageWithKOImage:(KO_IMAGE **)f nImg:(int)n;
-//- (RecImage *)recImages;
 
 @end
 

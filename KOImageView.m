@@ -153,18 +153,13 @@
 		return;
 	}
 
-// imaga data
-    n = [slc dataLength];
-    if ([slc type] == RECIMAGE_COLOR) {
+// 12bit -> 8bit -> gray -> color lookup not done yet ###
+    if ([_control imgType] == RECIMAGE_COLOR ||
+        ([_control imgType] == RECIMAGE_COMPLEX && [_control cpxMode] == 4)) {
         r = [slc data];
+        n = [slc dataLength];
         g = r + n;
         b = g + n;
-    } else {
-        r = [slc data];
-    }
-
-// 12bit -> 8bit -> gray -> color lookup not done yet ###
-    if ([slc type] == RECIMAGE_COLOR) {
         for (i = ix = 0; i < n; i++) {
             // r
             intensity = r[i] + LUTSIZE/2;
@@ -195,6 +190,8 @@
             ix++;
         }
     } else {
+        r = [slc data];
+        n = [slc dataLength];
         for (i = ix = 0; i < n; i++, ix+=3) {
             // r
             intensity = r[i] + LUTSIZE/2;

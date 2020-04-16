@@ -14,7 +14,7 @@
 - init
 {
 	self = [super init];
-	_gain = 0.25;
+	_gain = 0.5;
 	_offs = 0;
 	_horizontal = 1;
 	_zeroMean = 0;
@@ -34,19 +34,20 @@
 - (void)drawProfileAt:(NSPoint)pt from:(KOImageControl *)ctl
 {
     KOImageControl  *control = ctl;
-	RecImage    *img = [control image];
-    RecImage    *slc = [control selectedImage];
+    RecImage        *img = [control image];
+    RecImage        *slc = [control selectedImage];
+    RecImage        *dBuf = [control dispBuf];
 //    int         cpxMode = [control cpxMode];
-
-	float		*p, *q;
-	int			i, xDim, yDim, nImg, n;
-	int			x, y;
-    int			di, dj;
-    float		val, mx;
-	float		re, im;
-	NSString	*tmpString;
-	char		tmpCstr[256];
-    float       *buf;
+	float		    *p, *q;
+	int			    i, xDim, yDim, nImg, n;
+    int             step;
+	int			    x, y, z;
+    int			    di, dj;
+    float		    val, mx;
+	float		    re, im;
+	NSString	    *tmpString;
+	char		    tmpCstr[256];
+    float           *buf;
 
 	x = pt.x;
 	y = pt.y;
@@ -71,16 +72,18 @@
 	tmpString = [NSString stringWithCString:tmpCstr encoding:NSUTF8StringEncoding];
 	[_imagField setStringValue:tmpString];
 
+    p = [dBuf data];
     switch (_horizontal) {
     case 0:	// vertical
-		p = [slc data];
+	//	p = [dBuf data];
 		n = yDim;
         buf = (float *)malloc(sizeof(float) * n);
+        z = [control imageIndex];
 		for (i = 0; i < yDim; i++) {
             buf[i] = 0;
             for (di = -_width; di < _width + 1; di++) {
                 if (i + di >= 0 && i + di < xDim) {
-                    buf[i] += p[(i + di) * xDim + x];
+                    buf[i] += p[z * xDim * yDim + (i + di) * xDim + x];
                 }
             }
             buf[i] /= (_width * 2 + 1);
@@ -88,13 +91,15 @@
         [self setPoint:x:y:p[y*xDim + x]];
         break;
     case 1:		// horizontal
+    //    p = [dBuf dagta];
 		n = xDim;
         buf = (float *)malloc(sizeof(float) * n);
+        z = [control imageIndex];
 		for (i = 0; i < xDim; i++) {
             buf[i] = 0;
             for (di = -_width; di < _width + 1; di++) {
                 if (i + di >= 0 && i + di < xDim) {
-                    buf[i] += p[y * xDim + i + di];
+                    buf[i] += p[z * xDim * yDim + (y + di) * xDim + i];
                 }
             }
             buf[i] /= (_width * 2 + 1);
@@ -104,7 +109,7 @@
     case 2:		// time
 		n = nImg;
         buf = (float *)malloc(sizeof(float) * n);
-        p = [img data];
+   //     p = [dBuf data];
         for (i = 0; i < n; i++) {
             val = 0;
             for (di = - _width; di < _width + 1; di++) {
