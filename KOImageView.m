@@ -153,7 +153,7 @@
 		return;
 	}
 
-// 12bit -> 8bit -> gray -> color lookup not done yet ###
+// 12bit -> 8bit -> gray -> color lookup
     if ([_control imgType] == RECIMAGE_COLOR ||
         ([_control imgType] == RECIMAGE_COMPLEX && [_control cpxMode] == 4)) {
         r = [slc data];
@@ -166,7 +166,7 @@
             if (intensity < 0) intensity = 0;
             if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
             data[ix] = winLevTab[intensity];
-            if (ovr_data[i] > 0) {
+            if (_overlayOn) {
                 data[ix] += ovr_data[ix];
             }
             ix++;
@@ -175,7 +175,7 @@
             if (intensity < 0) intensity = 0;
             if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
             data[ix] = winLevTab[intensity];
-            if (ovr_data[i] > 0) {
+            if (_overlayOn) {
                 data[ix] += ovr_data[ix];
             }
             ix++;
@@ -184,7 +184,7 @@
             if (intensity < 0) intensity = 0;
             if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
             data[ix] = winLevTab[intensity];
-            if (ovr_data[i] > 0) {
+            if (_overlayOn) {
                 data[ix] += ovr_data[ix];
             }
             ix++;
@@ -200,7 +200,7 @@
             data[ix  ] = _r[winLevTab[intensity]];
             data[ix+1] = _g[winLevTab[intensity]];
             data[ix+2] = _b[winLevTab[intensity]];
-            if (ovr_data[i] > 0) {
+            if (_overlayOn) {
                 data[ix  ] += ovr_data[ix  ];
                 data[ix+1] += ovr_data[ix+1];
                 data[ix+2] += ovr_data[ix+2];
