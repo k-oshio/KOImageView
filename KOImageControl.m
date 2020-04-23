@@ -122,6 +122,27 @@ lp1(float a)
 	return [_img sliceAtIndex:ix];  // or dispBuf ?
 }
 
+- (RecImage *)selectedImageAndCpxMode // slice, real/imag/phase
+{
+    RecImage    *img = [self selectedImage];
+    switch (_cpxMode) {
+    case 0 :    // mag
+        [img magnitude];
+        break;
+    default :
+    case 1 :
+        [img takeRealPart];
+        break;
+    case 2 :
+        [img takeImagPart];
+        break;
+    case 3 :
+        [img phase];
+        break;
+    }
+    return img;
+}
+
 - (void)loadImages
 {
 //    const char *path;

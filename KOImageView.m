@@ -49,16 +49,14 @@
 // dim of image (not view)
 - (void)initImage:(int)xDim :(int)yDim
 {
-	unsigned char *conversion_tmp[5] = {NULL};
-	
-	_bitmap = [NSBitmapImageRep alloc];
 	_xdim = xDim;
 	_ydim = yDim;
-//	_zoomFactor = 1.0;
+	_zoomFactor = 1.0;
     [self setImageRect];
 	[self setLUT];
 	_flipped = NO;
-	_bitmap = [_bitmap initWithBitmapDataPlanes:&conversion_tmp[0]
+    _bitmap = [NSBitmapImageRep alloc];
+	_bitmap = [_bitmap initWithBitmapDataPlanes:NULL
                           pixelsWide:_xdim
                           pixelsHigh:_ydim
                        bitsPerSample:8
@@ -70,16 +68,17 @@
                         bitsPerPixel:24];
 
 	_over = [NSBitmapImageRep alloc];
-	_over = [_over initWithBitmapDataPlanes:&conversion_tmp[0]
+	_over = [_over initWithBitmapDataPlanes:NULL
 						  pixelsWide:_xdim
 						  pixelsHigh:_ydim
 					   bitsPerSample:8
-					 samplesPerPixel:3
-							hasAlpha:NO
+					 samplesPerPixel:4
+							hasAlpha:YES
 							isPlanar:NO
 					  colorSpaceName:NSDeviceRGBColorSpace
-						 bytesPerRow:_xdim * 3
-						bitsPerPixel:24];
+						 bytesPerRow:_xdim * 4
+						bitsPerPixel:32];
+    [_over setOpaque:NO];
 }
 
 - (void)enableOver:(BOOL)on
@@ -95,7 +94,7 @@
 // image (not view) should be rotated
 - (void)setRotateInView:(int)angle
 {
-	NSPoint	center;
+	NSPoint	center = {0, 0};
 	NSRect	bound = [self bounds];
 	float	x, y;
 
@@ -166,27 +165,18 @@
             if (intensity < 0) intensity = 0;
             if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
             data[ix] = winLevTab[intensity];
-            if (_overlayOn) {
-                data[ix] += ovr_data[ix];
-            }
             ix++;
             // g
             intensity = g[i] + LUTSIZE/2;
             if (intensity < 0) intensity = 0;
             if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
             data[ix] = winLevTab[intensity];
-            if (_overlayOn) {
-                data[ix] += ovr_data[ix];
-            }
             ix++;
             // b
             intensity = b[i] + LUTSIZE/2;
             if (intensity < 0) intensity = 0;
             if (intensity >= LUTSIZE) intensity = LUTSIZE-1;
             data[ix] = winLevTab[intensity];
-            if (_overlayOn) {
-                data[ix] += ovr_data[ix];
-            }
             ix++;
         }
     } else {
@@ -200,11 +190,6 @@
             data[ix  ] = _r[winLevTab[intensity]];
             data[ix+1] = _g[winLevTab[intensity]];
             data[ix+2] = _b[winLevTab[intensity]];
-            if (_overlayOn) {
-                data[ix  ] += ovr_data[ix  ];
-                data[ix+1] += ovr_data[ix+1];
-                data[ix+2] += ovr_data[ix+2];
-            }
         }
     }
 	[self display];
@@ -233,6 +218,12 @@
 		[[NSColor darkGrayColor] set];
 		NSRectFill(bb);
 	}
+    if (_overlayOn) {
+    //    [_over drawInRect:_imageRect];    // default is copy !!!!
+        [_over drawInRect:_imageRect fromRect:NSZeroRect //_imageRect
+            operation:NSCompositingOperationSourceOver
+            fraction:1.0 respectFlipped:NO hints:nil];
+    }
 	if (_isFirstResponder) {
 		[[NSColor lightGrayColor] set];
 		bb = [self bounds];
@@ -550,7 +541,6 @@
         x = whereInImage.x;
         y = whereInImage.y;
         ix = slc * _xdim * _ydim + y * _ydim + x;
-	//	[[wc pspace]  setPspaceAtIndex:ix];
     } else {
         // relative x/y
         if (initflag == YES) {
@@ -620,7 +610,7 @@
 
 - (void)clearCursor
 {
-    _lineXOn = _lineYOn = NO;
+    _lineXOn = _lineYOn = _overlayOn = NO;
 }
 
 - (void)setCursorAt:(NSPoint)pt

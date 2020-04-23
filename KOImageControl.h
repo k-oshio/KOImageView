@@ -109,7 +109,8 @@
 // accessors
 - (NSArray *)files;
 - (RecImage *)image;            // 3D
-- (RecImage *)selectedImage;    // slice
+- (RecImage *)selectedImage;    // slice (cpx)
+- (RecImage *)selectedImageAndCpxMode;  // slice, real/imag/phase
 - (RecImage *)dispBuf;
 - (void)setImage:(RecImage *)img;
 - (int)nImages;
