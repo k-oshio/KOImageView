@@ -82,7 +82,7 @@
 		for (i = 0; i < yDim; i++) {
             buf[i] = 0;
             for (di = -_width; di < _width + 1; di++) {
-                if (i + di >= 0 && i + di < xDim) {
+                if (i + di >= 0 && i + di < yDim) {
                     buf[i] += p[z * xDim * yDim + (i + di) * xDim + x];
                 }
             }
@@ -136,10 +136,10 @@
 	}
  
     // scale
-    mx = fmax([img maxVal], -[img minVal]);
-    for (i = 0; i < n; i++) {
-        buf[i] *= 1000.0 / mx;
-    }
+//    mx = fmax([img maxVal], -[img minVal]);
+//    for (i = 0; i < n; i++) {
+//        buf[i] *= 1000.0 / mx;
+//    }
 
 	[_profView setData:buf:n];
 	[_profView display];

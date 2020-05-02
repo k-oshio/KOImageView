@@ -37,7 +37,6 @@
         _plotData = (float *)malloc(sizeof(float) * n);
         _nData = n;
     }
-
     switch ([_control horizontal]) {
     case 0:		// vertical
 		for (i = 0; i < n; i++) {

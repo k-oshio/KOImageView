@@ -90,6 +90,7 @@
 - (IBAction)zoomIn:(id)sender;
 - (IBAction)zoomOut:(id)sender;
 - (IBAction)setLogP1:(id)sender;
+- (IBAction)reload:(id)sender;
 
 - (void)loadImages;
 - (void)changeWin:(int)w lev:(int)l from:sender;
@@ -110,7 +111,9 @@
 - (NSArray *)files;
 - (RecImage *)image;            // 3D
 - (RecImage *)selectedImage;    // slice (cpx)
-- (RecImage *)selectedImageAndCpxMode;  // slice, real/imag/phase
+- (RecImage *)dispBuf;
+- (RecImage *)selectedBuf;     // slice, real (imag, phase etc)
+//- (RecImage *)selectedImageAndCpxMode;  // slice, real/imag/phase
 - (RecImage *)dispBuf;
 - (void)setImage:(RecImage *)img;
 - (int)nImages;

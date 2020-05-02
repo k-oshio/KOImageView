@@ -115,13 +115,23 @@ lp1(float a)
     [_window makeKeyAndOrderFront:self];
 }
 
+// cpx
 - (RecImage *)selectedImage
 {
-	int			ix;
-	ix = [self imageIndex];
-	return [_img sliceAtIndex:ix];  // or dispBuf ?
+    int            ix;
+    ix = [self imageIndex];
+    return [_img sliceAtIndex:ix];
 }
 
+// real
+- (RecImage *)selectedBuf
+{
+    int            ix;
+    ix = [self imageIndex];
+    return [_dispBuf sliceAtIndex:ix];
+}
+
+/*
 - (RecImage *)selectedImageAndCpxMode // slice, real/imag/phase
 {
     RecImage    *img = [self selectedImage];
@@ -142,6 +152,7 @@ lp1(float a)
     }
     return img;
 }
+*/
 
 - (void)loadImages
 {
@@ -685,6 +696,11 @@ typedef struct {
 	_logP1 = [(NSButton *)sender state];
 	[self setDispBuf];
 	[self autoWinLev:self];
+}
+
+- (IBAction)reload:(id)sender
+{
+    [self loadImages];
 }
 
 // accessors
