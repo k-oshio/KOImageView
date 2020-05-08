@@ -56,6 +56,10 @@
 // zoom / pan
 	float       _zoomFactor;
 
+// flip / rot
+    BOOL        _flip;  // YES, NO
+    int         _rot;   // 0:off, 1:90, 2:180, 3:270
+
 // complex display mode
 	int         _cpxMode;	// 0:Mag, 1:Re, 2:Im, 3:Phs, 4:color
     int         _imgType;   // RECIMAGE_REAL, RECIMAGE_COMPLEX, RECIMAGE_COLOR
@@ -113,8 +117,6 @@
 - (RecImage *)selectedImage;    // slice (cpx)
 - (RecImage *)dispBuf;
 - (RecImage *)selectedBuf;     // slice, real (imag, phase etc)
-//- (RecImage *)selectedImageAndCpxMode;  // slice, real/imag/phase
-- (RecImage *)dispBuf;
 - (void)setImage:(RecImage *)img;
 - (int)nImages;
 - (void)setDispBuf;     // convert img to scaled real image

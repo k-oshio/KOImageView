@@ -35,7 +35,7 @@
 	_xdim = 0;			// image size
 	_ydim = 0;			// image size
 	_zoomFactor = 1.0;
-	_flipped = NO;
+//	_flipped = NO;
 	_interp = NO;
 	for (i = 0; i < LUTSIZE; i++) {
 		winLevTab[i] = 0;
@@ -54,7 +54,7 @@
 	_zoomFactor = 1.0;
     [self setImageRect];
 	[self setLUT];
-	_flipped = NO;
+//	_flipped = NO;
     _bitmap = [NSBitmapImageRep alloc];
 	_bitmap = [_bitmap initWithBitmapDataPlanes:NULL
                           pixelsWide:_xdim
@@ -86,48 +86,48 @@
 	_overlayOn = on;
 }
 
-- (void)setFlipInView:(int)flip
-{
-	_flipped = flip;
-}
+//- (void)setFlipInView:(BOOL)flip
+//{
+//	_flipped = flip;
+//}
 
 // image (not view) should be rotated
-- (void)setRotateInView:(int)angle
-{
-	NSPoint	center = {0, 0};
-	NSRect	bound = [self bounds];
-	float	x, y;
-
-	x = bound.size.width;
-	y = bound.size.height;
-
-    switch (angle) {
-    case 0:
-        center.x = 0;
-        center.y = 0;
-        break;
-    case 1:
-        center.x = 0;
-        center.y = y;
-        break;
-    case 2:
-        center.x = x;
-        center.y = y;
-        break;
-    case 3:
-        center.x = x;
-        center.y = 0;
-        break;
-    }
-	[self setBoundsRotation:angle * 90.0];
-	[self setBoundsOrigin:center];
-}
+//- (void)setRotateInView:(int)angle
+//{
+//	NSPoint	center = {0, 0};
+//	NSRect	bound = [self bounds];
+//	float	x, y;
+//
+//	x = bound.size.width;
+//	y = bound.size.height;
+//
+//    switch (angle) {
+//    case 0:
+//        center.x = 0;
+//        center.y = 0;
+//        break;
+//    case 1:
+//        center.x = 0;
+//        center.y = y;
+//        break;
+//    case 2:
+//        center.x = x;
+//        center.y = y;
+//        break;
+//    case 3:
+//        center.x = x;
+//        center.y = 0;
+//        break;
+//    }
+//	[self setBoundsRotation:angle * 90.0];
+//	[self setBoundsOrigin:center];
+//}
 
 // NSView method
-- (BOOL)isFlipped
-{
-	return _flipped;
-}
+//- (BOOL)isFlipped
+//{
+//	return _flipped;
+//}
 
 - (void)setInterpolation:(BOOL)flag
 {

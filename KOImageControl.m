@@ -61,6 +61,8 @@ lp1(float a)
     _frameRate = 10.0;	// fps
 	_cpxMode = 0;
 	_zoomFactor = 1.0;
+    _flip = NO;
+    _rot = 0;
 
 	return self;
 }
@@ -196,7 +198,6 @@ lp1(float a)
     [_numSlider setValue:0];
 
     // view
-    [_view initImage:[img xDim]:[img yDim]];
     [self updateWinLev];
     [self displayImage];
     if (_scaleView) {
@@ -327,6 +328,17 @@ lp1(float a)
         [_dispBuf multByConst:1.0 / _dispScale];
         break;
     }
+
+// flip / rot
+     //   - (void)rotate:(int)code
+    //    - (void)yFlip
+    if (_flip) {
+        [_dispBuf yFlip];
+    }
+    if (_rot > 0) {
+        [_dispBuf rotate:_rot];
+    }
+    [_view initImage:[_dispBuf xDim]:[_dispBuf yDim]];
 }
 
 - (void)openRawXDim:(int)xDim yDim:(int)yDim zDim:(int)zDim pixSize:(int)size order:(int)order type:(int)type
@@ -499,13 +511,21 @@ typedef struct {
 
 - (IBAction)setFlip:(id)sender
 {
-	[_view setFlipInView:(int)[(NSButton *)sender state]];
+//	[_view setFlipInView:(int)[(NSButton *)sender state]];
+    if ([(NSButton *)sender state] == 1) {
+        _flip = YES;
+    } else {
+        _flip = NO;
+    }
+    [self setDispBuf];
 	[self displayImage];
 }
 
 - (IBAction)setRotate:(id)sender
 {
-	[_view setRotateInView:(int)[(NSMenuItem *)[sender selectedCell] tag]];
+//	[_view setRotateInView:(int)[(NSMenuItem *)[sender selectedCell] tag]];
+    _rot = (int)[(NSMenuItem *)[sender selectedCell] tag];
+    [self setDispBuf];
 	[self displayImage];
 }
 

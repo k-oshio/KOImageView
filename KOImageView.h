@@ -35,7 +35,7 @@
 	int					_ydim;			// image size
 	float				_zoomFactor;
 	NSRect				_imageRect;
-	BOOL				_flipped;
+//	BOOL				_flipped;
 	BOOL				_interp;		// anti-aliasing
 	float				_aspect;
 // win/lev LUT (12 bit -> 8 bit)
@@ -58,8 +58,8 @@
 - (KOImageView *)initWithFrame:(NSRect)frameRect;
 - (void)initImage:(int)xdim :(int)ydim;
 - (void)enableOver:(BOOL)on;
-- (void)setFlipInView:(int)flip;
-- (void)setRotateInView:(int)angle;
+//- (void)setFlipInView:(BOOL)flip;
+//- (void)setRotateInView:(int)angle;
 - (void)setInterpolation:(BOOL)flag;
 - (void)displayImageData:(RecImage *)img;
 - (void)setColorMode:(int)mode;
