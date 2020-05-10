@@ -459,19 +459,19 @@
 		_aspect = -1;	// square image
 		break;
 	case 1:
-		_aspect = 0.8;
+		_aspect = 1.0/8;
 		break;
 	case 2:
-		_aspect = 1.0;
+		_aspect = 1.0/4;
 		break;
 	case 3:
-		_aspect = 1.2;
+		_aspect = 1.0/2;
 		break;
 	case 4:
-		_aspect = 1.4;
+		_aspect = 1.0;
 		break;
 	case 5:
-		_aspect = 1.7;
+		_aspect = 1.5;
 		break;
 	case 6:
 		_aspect = 2.0;
