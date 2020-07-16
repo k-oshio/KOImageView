@@ -195,7 +195,7 @@ lp1(float a)
     // set slider etc (old setImages:)
     // update n-slider (before displayImage)
     [_numSlider setMin:0 andMax:[img zDim]-1];
-    [_numSlider setValue:0];
+//    [_numSlider setValue:0];
 
     // view
     [self updateWinLev];
@@ -408,6 +408,7 @@ typedef struct {
 
     ix = [self imageIndex];
     slice = [_dispBuf sliceAtIndex:ix];
+    [_view setZoom:_zoomFactor];
     [_view displayImageData:slice];
 }
 
